@@ -1,7 +1,20 @@
 import { Button } from "@/components/ui/button";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Hero() {
+  const { isAuthenticated } = useAuth();
+  const [, setLocation] = useLocation();
+
+  const handleStartTrial = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (isAuthenticated) {
+      setLocation("/dashboard");
+    } else {
+      setLocation("/login");
+    }
+  };
+
   const handleWatchDemo = () => {
     // Demo functionality placeholder
     console.log("Watch demo clicked");
@@ -21,15 +34,14 @@ export default function Hero() {
             Create intelligent chatbots powered by your documents and website content. Deploy anywhere with our embeddable widget. No coding required.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/login">
-              <Button 
-                size="lg" 
-                className="text-lg px-8 py-4"
-                data-testid="button-start-trial-hero"
-              >
-                Start Free Trial
-              </Button>
-            </Link>
+            <Button 
+              size="lg" 
+              className="text-lg px-8 py-4"
+              data-testid="button-start-trial-hero"
+              onClick={handleStartTrial}
+            >
+              Start Free Trial
+            </Button>
             <Button 
               variant="outline" 
               size="lg" 

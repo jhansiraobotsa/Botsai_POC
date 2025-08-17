@@ -16,16 +16,13 @@ function Router() {
 
   return (
     <Switch>
-      {isLoading || !isAuthenticated ? (
+      <Route path="/" component={Landing} />
+      <Route path="/login" component={Login} />
+      {isAuthenticated && !isLoading && (
         <>
-          <Route path="/" component={Landing} />
-          <Route path="/login" component={Login} />
-        </>
-      ) : (
-        <>
-          <Route path="/" component={Dashboard} />
+          <Route path="/dashboard" component={Dashboard} />
           <Route path="/create" component={CreateChatbot} />
-          <Route path="/chatbot/:id" component={ChatbotDetail} />
+          <Route path="/chatbots/:id" component={ChatbotDetail} />
         </>
       )}
       <Route component={NotFound} />
