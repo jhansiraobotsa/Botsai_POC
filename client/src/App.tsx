@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import Landing from "@/pages/landing";
 import Login from "@/pages/login";
+import Register from "@/pages/register";
 import Dashboard from "@/pages/dashboard";
 import CreateChatbot from "@/pages/create-chatbot";
 import ChatbotDetail from "@/pages/chatbot-detail";
@@ -18,6 +19,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Landing} />
       <Route path="/login" component={Login} />
+      <Route path="/register" component={Register} />
       {isAuthenticated && !isLoading && (
         <>
           <Route path="/dashboard" component={Dashboard} />
@@ -43,3 +45,4 @@ function App() {
 }
 
 export default App;
+  

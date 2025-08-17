@@ -10,15 +10,11 @@ export default function Navigation() {
 
   const initial = (user?.name ?? user?.email ?? "").charAt(0).toUpperCase();
 
-  // Logout handler
+  // Logout handler  
+  const { logout } = useAuth();
   const handleLogout = () => {
-    // Remove session and redirect to login
-    fetch("/api/logout", { method: "POST" })
-      .then(() => {
-        setDropdownOpen(false);
-        setLocation("/login");
-        window.location.reload(); // Ensure state is reset
-      });
+    setDropdownOpen(false);
+    logout();
   };
 
   return (

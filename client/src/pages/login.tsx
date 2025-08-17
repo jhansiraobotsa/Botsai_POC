@@ -1,7 +1,7 @@
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -9,10 +9,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/useAuth";
 
 const loginSchema = z.object({
-  username: z.string().min(1, "Username is required"),
+  username: z.string().email("Please enter a valid email address"),
   password: z.string().min(1, "Password is required"),
 });
 
@@ -21,7 +21,7 @@ type LoginForm = z.infer<typeof loginSchema>;
 export default function Login() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const { loginMutation } = useAuth();
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -31,30 +31,21 @@ export default function Login() {
     },
   });
 
-  const loginMutation = useMutation({
-    mutationFn: async (data: LoginForm) => {
-      const response = await apiRequest("POST", "/api/login", data);
-      return response.json();
-    },
-    onSuccess: () => {
+  const onSubmit = async (data: LoginForm) => {
+    try {
+      await loginMutation.mutateAsync(data);
       toast({
         title: "Welcome!",
         description: "You have successfully logged in.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      setLocation("/");
-    },
-    onError: (error) => {
+      setLocation("/dashboard");
+    } catch (error: any) {
       toast({
         title: "Login Failed",
         description: error.message || "Invalid credentials",
         variant: "destructive",
       });
-    },
-  });
-
-  const onSubmit = (data: LoginForm) => {
-    loginMutation.mutate(data);
+    }
   };
 
   return (
@@ -80,10 +71,11 @@ export default function Login() {
                   name="username"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Username</FormLabel>
+                      <FormLabel>Email</FormLabel>
                       <FormControl>
                         <Input 
-                          placeholder="Enter your username" 
+                          type="email"
+                          placeholder="Enter your email" 
                           {...field}
                           data-testid="input-username"
                         />
@@ -123,10 +115,17 @@ export default function Login() {
               </form>
             </Form>
 
-            <div className="mt-6 p-4 bg-slate-100 rounded-lg">
-              <p className="text-sm text-slate-600 mb-2">Demo Credentials:</p>
-              <p className="text-sm font-mono text-slate-800">Username: jhansirao</p>
-              <p className="text-sm font-mono text-slate-800">Password: Jhanu@123$</p>
+            <div className="mt-6 text-center">
+              <p className="text-sm text-slate-600">
+                Don't have an account?{" "}
+                <Button 
+                  variant="link" 
+                  className="p-0 h-auto"
+                  onClick={() => setLocation("/register")}
+                >
+                  Register here
+                </Button>
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -136,7 +135,7 @@ export default function Login() {
             variant="link" 
             onClick={() => setLocation("/")}
             data-testid="button-back-home"
-          >
+          > 
             Back to Home
           </Button>
         </div>

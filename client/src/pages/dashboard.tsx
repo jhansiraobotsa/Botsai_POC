@@ -1,51 +1,40 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Link, useLocation } from "wouter";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useLocation, Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
-import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { Chatbot } from "@shared/schema";
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, isLoading, logout } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
-  const { data: chatbots, isLoading } = useQuery<Chatbot[]>({
-    queryKey: ["/api/chatbots"],
-  });
 
-  const logoutMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiRequest("POST", "/api/logout", {});
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      toast({
-        title: "Logged out successfully",
-        description: "You have been signed out of your account.",
+  const { data: chatbots, isLoading: isChatbotsLoading } = useQuery<Chatbot[]>({
+    queryKey: ["/api/chatbots"],
+    queryFn: async () => {
+      const token = localStorage.getItem("access_token");
+      const res = await fetch("/api/chatbots", {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
-      setLocation("/"); // Redirect to landing page after logout
-    },
-    onError: (error) => {
-      toast({
-        title: "Logout Failed",
-        description: error.message || "Unable to log out",
-        variant: "destructive",
-      });
+      if (!res.ok) throw new Error("Failed to fetch chatbots");
+      return res.json();
     },
   });
 
   const handleLogout = () => {
-    logoutMutation.mutate();
+    logout();
+    toast({
+      title: "Goodbye!",
+      description: "You have been logged out successfully.",
+    });
   };
 
-  if (isLoading) {
+  if (isLoading || isChatbotsLoading) {
     return (
       <div className="min-h-screen bg-slate-50">
         <div className="flex">
@@ -69,10 +58,10 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-slate-50">
       <DashboardHeader user={user} onLogout={handleLogout} />
-      
+
       <div className="flex">
         <Sidebar />
-        
+
         <div className="flex-1 p-6">
           <div className="mb-6">
             <h3 className="text-xl font-semibold text-slate-900 mb-2">My Chatbots</h3>
@@ -105,7 +94,7 @@ export default function Dashboard() {
                         </h4>
                         <p className="text-sm text-slate-600">{chatbot.industry}</p>
                       </div>
-                      <Badge 
+                      <Badge
                         variant={chatbot.status === "active" ? "default" : "secondary"}
                         data-testid={`status-${chatbot.id}`}
                       >
@@ -147,11 +136,11 @@ function DashboardHeader({ user, onLogout }: { user: any; onLogout: () => void }
         </div>
         <div className="flex items-center space-x-4">
           <span className="text-slate-300 text-sm">
-            {user?.firstName} {user?.lastName}
+            {user?.name} {/* Changed from user?.firstName user?.lastName */}
           </span>
           <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
             <span className="text-white text-sm font-medium">
-              {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
+              {user?.name?.charAt(0)} {/* Changed from user?.firstName?.charAt(0) user?.lastName?.charAt(0) */}
             </span>
           </div>
           <Button variant="ghost" size="sm" onClick={onLogout} data-testid="button-logout">
