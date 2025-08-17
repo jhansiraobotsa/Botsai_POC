@@ -1,8 +1,8 @@
-# ChatBot Builder
+# BOTSAi
 
 ## Overview
 
-ChatBot Builder is a comprehensive AI chatbot creation platform that enables users to build intelligent, customizable chatbots for any industry. The application allows users to upload documents, scrape website content, and create embeddable chatbot widgets that can be deployed anywhere. Built with a modern full-stack architecture, it provides a complete solution from chatbot creation to deployment with real-time chat interfaces and detailed analytics.
+BOTSAi is a comprehensive AI chatbot creation platform that enables users to build intelligent, customizable chatbots for any industry. The application allows users to upload documents, scrape website content, and create embeddable chatbot widgets that can be deployed anywhere. Built with a modern full-stack architecture, it provides a complete solution from chatbot creation to deployment with real-time chat interfaces and detailed analytics.
 
 ## User Preferences
 

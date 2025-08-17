@@ -29,7 +29,7 @@ export default function Navigation() {
             <Link to="/">
               <div className="flex-shrink-0 flex items-center cursor-pointer">
                 <i className="fas fa-robot text-2xl text-primary mr-2"></i>
-                <span className="text-xl font-bold text-slate-900">ChatBot Builder</span>
+                <span className="text-xl font-bold text-slate-900">BOTSAi</span>
               </div>
             </Link>
           </div>

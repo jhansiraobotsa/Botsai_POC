@@ -63,7 +63,7 @@ export default function Login() {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
             <i className="fas fa-robot text-3xl text-primary mr-3"></i>
-            <h1 className="text-2xl font-bold text-slate-900">ChatBot Builder</h1>
+            <h1 className="text-2xl font-bold text-slate-900">BOTSAi</h1>
           </div>
           <p className="text-slate-600">Sign in to your account</p>
         </div>

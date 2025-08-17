@@ -6,7 +6,7 @@ export default function Footer() {
           <div className="col-span-1">
             <div className="flex items-center mb-4">
               <i className="fas fa-robot text-2xl text-primary mr-2"></i>
-              <span className="text-xl font-bold">ChatBot Builder</span>
+              <span className="text-xl font-bold">BOTSAi</span>
             </div>
             <p className="text-slate-400 mb-4">
               Create intelligent AI chatbots for any industry. No coding required.
@@ -56,7 +56,7 @@ export default function Footer() {
         </div>
         
         <div className="border-t border-slate-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-slate-400">&copy; 2024 ChatBot Builder. All rights reserved.</p>
+          <p className="text-slate-400">&copy; 2024 BOTSAi. All rights reserved.</p>
           <div className="flex space-x-6 mt-4 md:mt-0">
             <a href="#" className="text-slate-400 hover:text-white text-sm">Privacy Policy</a>
             <a href="#" className="text-slate-400 hover:text-white text-sm">Terms of Service</a>
