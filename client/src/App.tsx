@@ -23,6 +23,7 @@ function Router() {
           <Route path="/dashboard" component={Dashboard} />
           <Route path="/create" component={CreateChatbot} />
           <Route path="/chatbots/:id" component={ChatbotDetail} />
+          <Route path="/chatbot/:id" component={ChatbotDetail} />
         </>
       )}
       <Route component={NotFound} />
