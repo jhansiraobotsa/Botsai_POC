@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import DashboardHeader from "@/components/dashboard-header";
 import Sidebar from "@/components/sidebar";
+import ChatWidget from "@/components/chat-widget";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
@@ -10,6 +11,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         <Sidebar />
         <div className="flex-1 p-6">{children}</div>
       </div>
+      <ChatWidget />
     </div>
   );
 }
