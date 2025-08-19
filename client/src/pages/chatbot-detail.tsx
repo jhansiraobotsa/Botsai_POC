@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Link, useParams } from "wouter";
+import { Link, useParams, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { Chatbot, ChatMessage } from "@shared/schema";
+import DashboardLayout from "@/components/dashboard-layout";
+import { useTheme } from "@/components/theme-provider";
 
 // Dashboard Components
 function DashboardHeader({ user, onLogout }: { user: any; onLogout: () => void }) {
@@ -75,6 +77,8 @@ export default function ChatbotDetail() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("overview");
+  const [, setLocation] = useLocation();
+  const { theme } = useTheme();
   
   const { data: chatbot, isLoading } = useQuery<Chatbot>({
     queryKey: ["/api/chatbots", id],
@@ -82,88 +86,73 @@ export default function ChatbotDetail() {
 
   if (isLoading || !chatbot) {
     return (
-      <div className="min-h-screen bg-slate-50">
-        <DashboardHeader user={user} onLogout={() => window.location.href = '/api/logout'} />
-        <div className="flex">
-          <Sidebar />
-          <div className="flex-1 p-6">
-            <div className="animate-pulse">
-              <div className="h-8 bg-slate-200 rounded w-1/3 mb-4"></div>
-              <div className="h-4 bg-slate-200 rounded w-1/2 mb-8"></div>
-              <div className="space-y-4">
-                <div className="h-32 bg-slate-200 rounded"></div>
-                <div className="h-32 bg-slate-200 rounded"></div>
-              </div>
-            </div>
+      <DashboardLayout>
+        <div className="animate-pulse">
+          <div className="h-8 bg-slate-200 rounded w-1/3 mb-4"></div>
+          <div className="h-4 bg-slate-200 rounded w-1/2 mb-8"></div>
+          <div className="space-y-4">
+            <div className="h-32 bg-slate-200 rounded"></div>
+            <div className="h-32 bg-slate-200 rounded"></div>
           </div>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <DashboardHeader user={user} onLogout={() => window.location.href = '/api/logout'} />
-      
-      <div className="flex">
-        <Sidebar />
-        <div className="flex-1 p-6">
-          <div className="max-w-7xl mx-auto">
-            {/* Header */}
-            <div className="mb-8">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h1 className="text-3xl font-bold text-slate-900">{chatbot.name}</h1>
-                  <p className="text-slate-600 mt-1">
-                    {chatbot.industry} • {chatbot.purpose}
-                  </p>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <Badge variant={chatbot.status === 'active' ? 'default' : 'secondary'}>
-                    {chatbot.status}
-                  </Badge>
-                  <Button variant="outline" size="sm">
-                    <i className="fas fa-edit mr-2"></i>
-                    Edit Settings
-                  </Button>
-                </div>
-              </div>
+    <DashboardLayout>
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className={`text-3xl font-bold mb-2 ${theme === 'dark' ? 'text-primary' : 'text-slate-900'}`}>{chatbot.name}</h1>
+              <p className={`text-lg font-semibold ${theme === 'dark' ? 'text-secondary' : 'text-slate-600'}`}>{chatbot.industry} • {chatbot.purpose}</p>
             </div>
-
-            {/* Tabs */}
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-              <TabsList className="grid w-full grid-cols-5">
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="documents">Documents</TabsTrigger>
-                <TabsTrigger value="chat">Chat Interface</TabsTrigger>
-                <TabsTrigger value="analytics">Analytics</TabsTrigger>
-                <TabsTrigger value="embed">Embed & Export</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="overview" className="space-y-6">
-                <OverviewTab chatbot={chatbot} />
-              </TabsContent>
-
-              <TabsContent value="documents" className="space-y-6">
-                <DocumentsTab chatbotId={chatbot.id} />
-              </TabsContent>
-
-              <TabsContent value="chat" className="space-y-6">
-                <ChatInterfaceTab chatbot={chatbot} />
-              </TabsContent>
-
-              <TabsContent value="analytics" className="space-y-6">
-                <AnalyticsTab chatbotId={chatbot.id} />
-              </TabsContent>
-
-              <TabsContent value="embed" className="space-y-6">
-                <EmbedExportTab chatbot={chatbot} />
-              </TabsContent>
-            </Tabs>
+            <div className="flex items-center space-x-3">
+              <Badge variant={chatbot.status === 'active' ? 'default' : 'secondary'}>
+                {chatbot.status}
+              </Badge>
+              <Button variant="outline" size="sm" onClick={() => setLocation(`/edit/${chatbot.id}`, { state: { chatbot } })}>
+                <i className="fas fa-edit mr-2"></i>
+                Edit Settings
+              </Button>
+            </div>
           </div>
         </div>
+
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="documents">Documents</TabsTrigger>
+            <TabsTrigger value="chat">Chat Interface</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="embed">Embed & Export</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="space-y-6">
+            <OverviewTab chatbot={chatbot} />
+          </TabsContent>
+
+          <TabsContent value="documents" className="space-y-6">
+            <DocumentsTab chatbotId={chatbot.id} />
+          </TabsContent>
+
+          <TabsContent value="chat" className="space-y-6">
+            <ChatInterfaceTab chatbot={chatbot} />
+          </TabsContent>
+
+          <TabsContent value="analytics" className="space-y-6">
+            <AnalyticsTab chatbotId={chatbot.id} />
+          </TabsContent>
+
+          <TabsContent value="embed" className="space-y-6">
+            <EmbedExportTab chatbot={chatbot} />
+          </TabsContent>
+        </Tabs>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }
 

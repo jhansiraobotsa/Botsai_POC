@@ -11,23 +11,20 @@ import Dashboard from "@/pages/dashboard";
 import CreateChatbot from "@/pages/create-chatbot";
 import ChatbotDetail from "@/pages/chatbot-detail";
 import NotFound from "@/pages/not-found";
+import { ThemeProvider } from "@/components/theme-provider";
 
 function Router() {
-  const { isAuthenticated, isLoading } = useAuth();
-
+  // Remove auth gating for all routes
   return (
     <Switch>
       <Route path="/" component={Landing} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
-      {isAuthenticated && !isLoading && (
-        <>
-          <Route path="/dashboard" component={Dashboard} />
-          <Route path="/create" component={CreateChatbot} />
-          <Route path="/chatbots/:id" component={ChatbotDetail} />
-          <Route path="/chatbot/:id" component={ChatbotDetail} />
-        </>
-      )}
+      <Route path="/dashboard" component={Dashboard} />
+      <Route path="/create" component={CreateChatbot} />
+      <Route path="/edit/:id" component={CreateChatbot} />
+      <Route path="/chatbots/:id" component={ChatbotDetail} />
+      <Route path="/chatbot/:id" component={ChatbotDetail} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -35,14 +32,15 @@ function Router() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Router />
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Router />
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }
 
 export default App;
-  

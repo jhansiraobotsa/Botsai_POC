@@ -1,23 +1,10 @@
 import express, { type Request, Response, NextFunction } from "express";
-import session from "express-session";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-
-// Session middleware for demo auth
-app.use(session({
-  secret: 'demo-secret-key',
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    httpOnly: true,
-    secure: false, // Set to true in production with HTTPS
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
-  }
-}));
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -73,7 +60,7 @@ app.use((req, res, next) => {
   // Other ports are firewalled. Default to 5000 if not specified.
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
-  const port = parseInt(process.env.PORT || '3000', 10);
+  const port = parseInt(process.env.PORT || '3001', 10);
   server.listen(port, "127.0.0.1", () => {
     log(`serving on port ${port}`);
   });

@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertChatbotSchema, insertDocumentSchema, insertConversationSchema } from "@shared/schema";
 import multer from "multer";
+import { randomUUID } from "crypto";
 
 // Configure multer for file uploads
 const upload = multer({ 
@@ -10,108 +11,12 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
 });
 
-// Mock authentication middleware for MVP
-const isAuthenticated = (req: any, res: any, next: any) => {
-  // Check if user is logged in via session
-  if (!req.session?.isLoggedIn) {
-    return res.status(401).json({ message: "Unauthorized" });
-  }
-  
-  // Set user data for authenticated requests
-  req.user = {
-    claims: {
-      sub: "jhansirao-123",
-      email: "jhansirao@example.com",
-      first_name: "Jhansi",
-      last_name: "Rao"
-    }
-  };
-  next();
-};
-
 export async function registerRoutes(app: Express): Promise<Server> {
-  
-  // Auth routes (mocked for MVP)
-  app.get('/api/auth/user', async (req: any, res) => {
-    try {
-      // Check if user is already "logged in" (for demo purposes)
-      if (!req.session?.isLoggedIn) {
-        return res.status(401).json({ message: "Not authenticated" });
-      }
-      
-      const userId = "jhansirao-123";
-      let user = await storage.getUser(userId);
-      
-      if (!user) {
-        user = await storage.upsertUser({
-          id: userId,
-          email: "jhansirao@example.com",
-          firstName: "Jhansi",
-          lastName: "Rao",
-          profileImageUrl: null,
-          plan: "free",
-        });
-      }
-      
-      res.json(user);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
-    }
-  });
-
-  // Login route with username/password
-  app.post('/api/login', async (req: any, res) => {
-    try {
-      const { username, password } = req.body;
-      
-      // Check credentials
-      if (username === 'jhansirao' && password === 'Jhanu@123$') {
-        // Set session as logged in
-        req.session.isLoggedIn = true;
-        
-        // Create user if doesn't exist
-        const userId = "jhansirao-123";
-        let user = await storage.getUser(userId);
-        
-        if (!user) {
-          user = await storage.upsertUser({
-            id: userId,
-            email: "jhansirao@example.com",
-            firstName: "Jhansi",
-            lastName: "Rao",
-            profileImageUrl: null,
-            plan: "free",
-          });
-        }
-        
-        res.json({ success: true, message: "Login successful" });
-      } else {
-        res.status(401).json({ success: false, message: "Invalid credentials" });
-      }
-    } catch (error) {
-      console.error("Error during login:", error);
-      res.status(500).json({ message: "Login failed" });
-    }
-  });
-
-  // Logout route
-  app.post('/api/logout', async (req: any, res) => {
-    req.session.destroy((err: any) => {
-      if (err) {
-        console.error("Session destruction error:", err);
-        return res.status(500).json({ message: "Logout failed" });
-      }
-      res.clearCookie('connect.sid');
-      res.json({ success: true, message: "Logged out successfully" });
-    });
-  });
-
   // Chatbot routes
-  app.get("/api/chatbots", isAuthenticated, async (req: any, res) => {
+  app.get("/api/chatbots", async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const chatbots = await storage.getChatbotsByUserId(userId);
+      // Return all chatbots (no user filtering)
+      const chatbots = await storage.getAllChatbots();
       res.json(chatbots);
     } catch (error) {
       console.error("Error fetching chatbots:", error);
@@ -119,18 +24,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/chatbots/:id", isAuthenticated, async (req: any, res) => {
+  app.get("/api/chatbots/:id", async (req: any, res) => {
     try {
       const chatbot = await storage.getChatbot(req.params.id);
       if (!chatbot) {
         return res.status(404).json({ message: "Chatbot not found" });
       }
-      
-      // Check ownership
-      if (chatbot.userId !== req.user.claims.sub) {
-        return res.status(403).json({ message: "Access denied" });
-      }
-      
       res.json(chatbot);
     } catch (error) {
       console.error("Error fetching chatbot:", error);
@@ -138,20 +37,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/chatbots", isAuthenticated, async (req: any, res) => {
+  app.post("/api/chatbots", async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const validatedData = insertChatbotSchema.parse(req.body);
-      
-      // Check subscription limits
-      const subscription = await storage.getSubscriptionByUserId(userId);
-      const userChatbots = await storage.getChatbotsByUserId(userId);
-      
-      if (subscription && userChatbots.length >= subscription.maxChatbots) {
-        return res.status(403).json({ message: "Chatbot limit reached for your plan" });
-      }
-      
-      const chatbot = await storage.createChatbot({ ...validatedData, userId });
+      const body = req.body;
+      // Accept all fields, store everything, and use any id provided
+      const id = body.id || body._id || body.uuid || randomUUID();
+      const chatbotData = {
+        ...body,
+        id,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        brandColor: body.brandColor ?? "#3B82F6",
+        widgetPosition: body.widgetPosition ?? "bottom-right",
+        status: body.status ?? "active",
+      };
+      const chatbot = await storage.createChatbot(chatbotData);
       res.json(chatbot);
     } catch (error) {
       console.error("Error creating chatbot:", error);
@@ -159,17 +59,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/chatbots/:id", isAuthenticated, async (req: any, res) => {
+  app.put("/api/chatbots/:id", async (req: any, res) => {
     try {
       const chatbot = await storage.getChatbot(req.params.id);
       if (!chatbot) {
         return res.status(404).json({ message: "Chatbot not found" });
       }
-      
-      if (chatbot.userId !== req.user.claims.sub) {
-        return res.status(403).json({ message: "Access denied" });
-      }
-      
       const validatedData = insertChatbotSchema.partial().parse(req.body);
       const updated = await storage.updateChatbot(req.params.id, validatedData);
       res.json(updated);
@@ -179,17 +74,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/chatbots/:id", isAuthenticated, async (req: any, res) => {
+  app.delete("/api/chatbots/:id", async (req: any, res) => {
     try {
       const chatbot = await storage.getChatbot(req.params.id);
       if (!chatbot) {
         return res.status(404).json({ message: "Chatbot not found" });
       }
-      
-      if (chatbot.userId !== req.user.claims.sub) {
-        return res.status(403).json({ message: "Access denied" });
-      }
-      
       await storage.deleteChatbot(req.params.id);
       res.json({ message: "Chatbot deleted successfully" });
     } catch (error) {
@@ -199,13 +89,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Document routes
-  app.get("/api/chatbots/:chatbotId/documents", isAuthenticated, async (req: any, res) => {
+  app.get("/api/chatbots/:chatbotId/documents", async (req: any, res) => {
     try {
       const chatbot = await storage.getChatbot(req.params.chatbotId);
-      if (!chatbot || chatbot.userId !== req.user.claims.sub) {
-        return res.status(403).json({ message: "Access denied" });
+      if (!chatbot) {
+        return res.status(404).json({ message: "Chatbot not found" });
       }
-      
       const documents = await storage.getDocumentsByChatbotId(req.params.chatbotId);
       res.json(documents);
     } catch (error) {
@@ -214,20 +103,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/chatbots/:chatbotId/documents", isAuthenticated, upload.single('file'), async (req: any, res) => {
+  app.post("/api/chatbots/:chatbotId/documents", upload.single('file'), async (req: any, res) => {
     try {
       const chatbot = await storage.getChatbot(req.params.chatbotId);
-      if (!chatbot || chatbot.userId !== req.user.claims.sub) {
-        return res.status(403).json({ message: "Access denied" });
+      if (!chatbot) {
+        return res.status(404).json({ message: "Chatbot not found" });
       }
-      
       if (!req.file) {
         return res.status(400).json({ message: "No file uploaded" });
       }
-      
       // Extract text content from file (simplified for MVP)
       const content = req.file.buffer.toString('utf8');
-      
       const document = await storage.createDocument({
         chatbotId: req.params.chatbotId,
         fileName: req.file.originalname,
@@ -235,7 +121,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         fileSize: req.file.size,
         content,
       });
-      
       res.json(document);
     } catch (error) {
       console.error("Error uploading document:", error);
@@ -243,7 +128,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/documents/:id", isAuthenticated, async (req: any, res) => {
+  app.delete("/api/documents/:id", async (req: any, res) => {
     try {
       await storage.deleteDocument(req.params.id);
       res.json({ message: "Document deleted successfully" });
@@ -258,12 +143,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { message, sessionId } = req.body;
       const chatbotId = req.params.chatbotId;
-      
       const chatbot = await storage.getChatbot(chatbotId);
-      if (!chatbot || !chatbot.isActive) {
-        return res.status(404).json({ message: "Chatbot not found or inactive" });
+      if (!chatbot) {
+        return res.status(404).json({ message: "Chatbot not found" });
       }
-      
       // Get or create conversation
       let conversation = await storage.getConversation(sessionId);
       if (!conversation) {
@@ -273,7 +156,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           messages: [],
         });
       }
-      
       // Add user message
       const messages = [...(conversation.messages as any[]), {
         id: Date.now().toString(),
@@ -281,7 +163,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         content: message,
         timestamp: new Date().toISOString(),
       }];
-      
       // Generate AI response (mock for MVP)
       const aiResponse = generateMockResponse(message, chatbot.industry);
       messages.push({
@@ -290,10 +171,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         content: aiResponse,
         timestamp: new Date().toISOString(),
       });
-      
       // Update conversation
       await storage.updateConversation(sessionId, { messages });
-      
       res.json({ response: aiResponse });
     } catch (error) {
       console.error("Error processing chat:", error);
@@ -301,38 +180,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Subscription routes
-  app.get("/api/subscription", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const subscription = await storage.getSubscriptionByUserId(userId);
-      res.json(subscription);
-    } catch (error) {
-      console.error("Error fetching subscription:", error);
-      res.status(500).json({ message: "Failed to fetch subscription" });
-    }
-  });
-
   // Widget embed route (public)
   app.get("/api/widget/:chatbotId", async (req, res) => {
     try {
       const chatbot = await storage.getChatbot(req.params.chatbotId);
-      if (!chatbot || !chatbot.isActive) {
-        return res.status(404).json({ message: "Chatbot not found or inactive" });
+      if (!chatbot) {
+        return res.status(404).json({ message: "Chatbot not found" });
       }
-      
-      // Return widget configuration
+      // Return widget configuration (only fields that exist)
       res.json({
         id: chatbot.id,
         name: chatbot.name,
-        welcomeMessage: chatbot.welcomeMessage,
-        primaryColor: chatbot.primaryColor,
-        position: chatbot.position,
-        size: chatbot.size,
+        // fallback to brandColor/widgetPosition if needed
+        brandColor: chatbot.brandColor,
+        widgetPosition: chatbot.widgetPosition,
+        status: chatbot.status,
       });
     } catch (error) {
       console.error("Error fetching widget config:", error);
       res.status(500).json({ message: "Failed to fetch widget configuration" });
+    }
+  });
+
+  // Accept and store external API chatbot response directly
+  app.post("/api/chatbots/from-external", async (req: any, res) => {
+    try {
+      const ext = req.body;
+      // Map external response to memory storage fields
+      const chatbot = await storage.createChatbot({
+        id: ext._id,
+        userId: ext.user_id?.toString() ?? "public",
+        name: ext.user_steps_details?.name ?? ext.chatbot_name ?? "Chatbot",
+        industry: ext.user_steps_details?.industry ?? "",
+        purpose: ext.user_steps_details?.purpose ?? "",
+        tone: ext.user_steps_details?.tone ?? "",
+        brandColor: ext.user_steps_details?.brandColor ?? "#3B82F6",
+        businessGoal: ext.user_steps_details?.businessGoal ?? "",
+        targetAudience: ext.user_steps_details?.targetAudience ?? "",
+        keyFeatures: ext.user_steps_details?.keyFeatures ?? "",
+        widgetPosition: ext.user_steps_details?.widgetPosition ?? "bottom-right",
+        status: "active",
+      });
+      res.json(chatbot);
+    } catch (error) {
+      console.error("Error storing external chatbot:", error);
+      res.status(500).json({ message: "Failed to store external chatbot" });
     }
   });
 
@@ -368,16 +260,16 @@ function generateMockResponse(userMessage: string, industry: string): string {
   
   if (message.includes('hour') || message.includes('time')) {
     return industryResponses.hours || industryResponses.default;
-  } else if (message.includes('ship') && industry === 'e-commerce') {
-    return industryResponses.shipping || industryResponses.default;
-  } else if (message.includes('return') && industry === 'e-commerce') {
-    return industryResponses.return || industryResponses.default;
-  } else if (message.includes('appointment') && industry === 'healthcare') {
-    return industryResponses.appointment || industryResponses.default;
-  } else if (message.includes('insurance') && industry === 'healthcare') {
-    return industryResponses.insurance || industryResponses.default;
-  } else if (message.includes('contact')) {
-    return industryResponses.contact || industryResponses.default;
+  } else if (message.includes('ship') && industry === 'e-commerce' && 'shipping' in industryResponses) {
+    return (industryResponses as typeof responses['e-commerce']).shipping || industryResponses.default;
+  } else if (message.includes('return') && industry === 'e-commerce' && 'return' in industryResponses) {
+    return (industryResponses as typeof responses['e-commerce']).return || industryResponses.default;
+  } else if (message.includes('appointment') && industry === 'healthcare' && 'appointment' in industryResponses) {
+    return (industryResponses as typeof responses['healthcare']).appointment || industryResponses.default;
+  } else if (message.includes('insurance') && industry === 'healthcare' && 'insurance' in industryResponses) {
+    return (industryResponses as typeof responses['healthcare']).insurance || industryResponses.default;
+  } else if (message.includes('contact') && 'contact' in industryResponses) {
+    return (industryResponses as typeof responses['default']).contact || industryResponses.default;
   } else {
     return industryResponses.default;
   }

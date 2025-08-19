@@ -28,6 +28,7 @@ export interface IStorage {
   createChatbot(chatbot: InsertChatbot & { userId: string }): Promise<Chatbot>;
   updateChatbot(id: string, chatbot: Partial<InsertChatbot>): Promise<Chatbot>;
   deleteChatbot(id: string): Promise<void>;
+  getAllChatbots(): Promise<Chatbot[]>;
   
   // Document operations
   getDocumentsByChatbotId(chatbotId: string): Promise<Document[]>;
@@ -59,7 +60,6 @@ export class MemStorage implements IStorage {
 
   async upsertUser(userData: UpsertUser): Promise<User> {
     const existingUser = Array.from(this.users.values()).find(u => u.email === userData.email);
-    
     if (existingUser) {
       const updatedUser: User = {
         ...existingUser,
@@ -73,8 +73,13 @@ export class MemStorage implements IStorage {
       const newUser: User = {
         ...userData,
         id,
+        plan: "free",
         createdAt: new Date(),
         updatedAt: new Date(),
+        email: userData.email ?? null,
+        firstName: userData.firstName ?? null,
+        lastName: userData.lastName ?? null,
+        profileImageUrl: userData.profileImageUrl ?? null,
       };
       this.users.set(id, newUser);
       
@@ -105,15 +110,26 @@ export class MemStorage implements IStorage {
     return this.chatbots.get(id);
   }
 
-  async createChatbot(chatbotData: InsertChatbot & { userId: string }): Promise<Chatbot> {
-    const id = randomUUID();
+  async createChatbot(chatbotData: InsertChatbot & { userId: string; id?: string }): Promise<Chatbot> {
+    let id = chatbotData.id;
+    let isTentative = false;
+    if (!id) {
+      id = randomUUID();
+      isTentative = true;
+    }
+    console.log("[MemStorage] Storing chatbot with id:", id, chatbotData, isTentative ? '(tentative)' : '');
     const chatbot: Chatbot = {
       ...chatbotData,
       id,
       createdAt: new Date(),
       updatedAt: new Date(),
+      brandColor: chatbotData.brandColor ?? "#3B82F6",
+      widgetPosition: chatbotData.widgetPosition ?? "bottom-right",
+      status: chatbotData.status ?? "active",
     };
     this.chatbots.set(id, chatbot);
+    // Print all chatbots in memory as JSON
+    console.log('[MemStorage] All chatbots in memory:', JSON.stringify(Array.from(this.chatbots.values()), null, 2));
     return chatbot;
   }
 
@@ -143,6 +159,10 @@ export class MemStorage implements IStorage {
         this.conversations.delete(convId);
       }
     });
+  }
+
+  async getAllChatbots(): Promise<Chatbot[]> {
+    return Array.from(this.chatbots.values());
   }
 
   async getDocumentsByChatbotId(chatbotId: string): Promise<Document[]> {
@@ -179,6 +199,7 @@ export class MemStorage implements IStorage {
       id,
       createdAt: new Date(),
       updatedAt: new Date(),
+      messages: conversationData.messages ?? [],
     };
     this.conversations.set(id, conversation);
     return conversation;
@@ -208,6 +229,9 @@ export class MemStorage implements IStorage {
       id,
       createdAt: new Date(),
       updatedAt: new Date(),
+      status: subscriptionData.status ?? "active",
+      conversationsUsed: subscriptionData.conversationsUsed ?? 0,
+      trialEndsAt: subscriptionData.trialEndsAt ?? null,
     };
     this.subscriptions.set(id, subscription);
     return subscription;

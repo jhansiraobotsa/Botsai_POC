@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Link, useLocation } from "wouter";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link, useLocation, useParams } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -19,6 +19,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { CreateChatbotForm } from "@shared/schema";
+import DashboardLayout from "@/components/dashboard-layout";
+import { useTheme } from "@/components/theme-provider";
 
 const STEPS = [
   "Basic Information",
@@ -124,12 +126,26 @@ function Sidebar() {
 
 export default function CreateChatbot() {
   const [step, setStep] = useState(0);
+  const [initialDataLoaded, setInitialDataLoaded] = useState(false);
   const [, setLocation] = useLocation();
+  const params = useParams();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  
   const userPlan = user?.plan || "free";
+  const { theme } = useTheme();
+
+  // If editing, fetch chatbot data (fix for TanStack Query v5+)
+  const { data: chatbotToEdit } = useQuery({
+    queryKey: ["edit-chatbot", params.id],
+    queryFn: async () => {
+      if (!params.id) return null;
+      const res = await fetch(`/api/chatbots/${params.id}`);
+      if (!res.ok) throw new Error("Failed to fetch chatbot");
+      return res.json();
+    },
+    enabled: !!params.id,
+  });
 
   const form = useForm<CreateChatbotForm>({
     resolver: zodResolver(createChatbotSchema),
@@ -146,10 +162,69 @@ export default function CreateChatbot() {
     },
   });
 
+  // Prefill form if editing
+  useEffect(() => {
+    if (params.id && chatbotToEdit && !initialDataLoaded) {
+      form.reset({
+        name: chatbotToEdit.name || "",
+        industry: chatbotToEdit.industry || "",
+        purpose: chatbotToEdit.purpose || "",
+        tone: chatbotToEdit.tone || "",
+        businessGoal: chatbotToEdit.businessGoal || "",
+        targetAudience: chatbotToEdit.targetAudience || "",
+        keyFeatures: chatbotToEdit.keyFeatures || "",
+        brandColor: chatbotToEdit.brandColor || "#3B82F6",
+        widgetPosition: chatbotToEdit.widgetPosition || "bottom-right"
+      });
+      setInitialDataLoaded(true);
+    }
+  }, [params.id, chatbotToEdit, form, initialDataLoaded]);
+
   const createMutation = useMutation({
     mutationFn: async (data: CreateChatbotForm) => {
-      const response = await apiRequest("POST", "/api/chatbots", data);
-      return response.json();
+      // Build payload for external API
+      const token = localStorage.getItem('access_token');
+      const payload = {
+        chatbot_name: data.name,
+        user_id: user?.email || "botsajhansirao@gmail.com",
+        user_steps_details: {
+          name: data.name,
+          industry: data.industry,
+          purpose: data.purpose,
+          tone: data.tone,
+          brandColor: data.brandColor,
+          businessGoal: data.businessGoal,
+          targetAudience: data.targetAudience,
+          keyFeatures: data.keyFeatures,
+          widgetPosition: data.widgetPosition,
+          plan: userPlan || "basic"
+        }
+      };
+      const response = await fetch(
+        "http://192.168.1.31:8001/api/v1/auth/create-chatbot",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "accept": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {})
+          },
+          body: JSON.stringify(payload)
+        }
+      );
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ detail: 'Network error' }));
+        throw new Error(error.detail || `HTTP ${response.status}`);
+      }
+      const apiData = await response.json();
+      // POST all original form data to memory, using id = _id from backend
+      const memRes = await apiRequest("POST", "/api/chatbots", {
+        ...data,
+        id: apiData._id,
+        userId: user?.email || "botsajhansirao@gmail.com",
+        status: "active"
+      });
+      return { ...memRes, id: apiData._id };
     },
     onSuccess: (data) => {
       toast({
@@ -187,76 +262,67 @@ export default function CreateChatbot() {
   const progress = ((step + 1) / STEPS.length) * 100;
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <DashboardHeader user={user} onLogout={() => window.location.href = '/api/logout'} />
-      
-      <div className="flex">
-        <Sidebar />
-        <div className="flex-1 py-8">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-8">
-              <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
-                Create Your Chatbot
-              </h1>
-              <p className="text-xl text-slate-600">Our intelligent setup process guides you through customization</p>
-            </div>
-
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between mb-4">
-                  <CardTitle>{STEPS[step]}</CardTitle>
-                  <div className="text-sm text-slate-600">
-                    Step {step + 1} of {STEPS.length}
-                  </div>
-                </div>
-                <Progress value={progress} className="w-full" />
-              </CardHeader>
-              
-              <CardContent>
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                    {step === 0 && <BasicInformationStep form={form} userPlan={userPlan} />}
-                    {step === 1 && <IndustryQuestionsStep form={form} />}
-                    {step === 2 && <CustomizationStep form={form} />}
-                    {step === 3 && <ReviewStep form={form} />}
-
-                    <div className="flex justify-between pt-6">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={onPrevious}
-                        disabled={step === 0}
-                        data-testid="button-previous"
-                      >
-                        Previous
-                      </Button>
-                      
-                      {step === STEPS.length - 1 ? (
-                        <Button
-                          type="submit"
-                          disabled={createMutation.isPending}
-                          data-testid="button-create-chatbot"
-                        >
-                          {createMutation.isPending ? "Creating..." : "Create Chatbot"}
-                        </Button>
-                      ) : (
-                        <Button
-                          type="button"
-                          onClick={onNext}
-                          data-testid="button-next"
-                        >
-                          Continue
-                        </Button>
-                      )}
-                    </div>
-                  </form>
-                </Form>
-              </CardContent>
-            </Card>
-          </div>
+    <DashboardLayout>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-8">
+          <h1 className={`text-3xl md:text-4xl font-bold mb-4 ${theme === 'dark' ? 'text-primary' : 'text-slate-900'}`}>Create Your Chatbot</h1>
+          <p className={`text-xl ${theme === 'dark' ? 'text-secondary' : 'text-slate-600'}`}>Our intelligent setup process guides you through customization</p>
         </div>
+
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between mb-4">
+              <CardTitle>{STEPS[step]}</CardTitle>
+              <div className="text-sm text-slate-600">
+                Step {step + 1} of {STEPS.length}
+              </div>
+            </div>
+            <Progress value={progress} className="w-full" />
+          </CardHeader>
+          
+          <CardContent>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                {step === 0 && <BasicInformationStep form={form} userPlan={userPlan} />}
+                {step === 1 && <IndustryQuestionsStep form={form} />}
+                {step === 2 && <CustomizationStep form={form} />}
+                {step === 3 && <ReviewStep form={form} />}
+
+                <div className="flex justify-between pt-6">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={onPrevious}
+                    disabled={step === 0}
+                    data-testid="button-previous"
+                  >
+                    Previous
+                  </Button>
+                  
+                  {step === STEPS.length - 1 ? (
+                    <Button
+                      type="submit"
+                      disabled={createMutation.isPending}
+                      data-testid="button-create-chatbot"
+                    >
+                      {createMutation.isPending ? "Creating..." : "Create Chatbot"}
+                    </Button>
+                  ) : (
+                    <Button
+                      type="button"
+                      onClick={onNext}
+                      data-testid="button-next"
+                    >
+                      Continue
+                    </Button>
+                  )}
+                </div>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }
 
