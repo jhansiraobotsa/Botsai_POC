@@ -6,13 +6,13 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://192.168.1.31:8001',
+        target: 'http://192.168.1.31:8006',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, '/api'),
       },
       '/auth': {
-        target: 'http://192.168.1.31:8001',
+        target: 'http://192.168.1.31:8006',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/auth/, '/auth'),

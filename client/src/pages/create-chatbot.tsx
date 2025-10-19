@@ -201,7 +201,7 @@ export default function CreateChatbot() {
         }
       };
       const response = await fetch(
-        "http://192.168.1.31:8001/api/v1/auth/create-chatbot",
+        "http://192.168.1.31:8006/api/v1/auth/create-chatbot",
         {
           method: "POST",
           headers: {

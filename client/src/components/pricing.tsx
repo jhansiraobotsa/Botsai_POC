@@ -38,8 +38,9 @@ export default function Pricing() {
       description: "Full access to all chatbot types & features",
       features: [
         "5 chatbots (all industry types)",
+        "1 MCP services for each chatbot",
         "2,000 conversations/month",
-        "50 document uploads",
+        "20 document uploads",
         "Advanced customization",
         "E-commerce integration",
         "Lead generation bots",
@@ -59,6 +60,7 @@ export default function Pricing() {
       features: [
         "Unlimited chatbots (all types)",
         "20,000 conversations/month",
+        "3 MCP services for each chatbot",
         "Unlimited uploads",
         "White-label solution",
         "Custom integrations",
