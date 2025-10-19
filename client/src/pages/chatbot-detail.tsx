@@ -380,63 +380,164 @@ function DocumentsTab({ chatbotId }: { chatbotId: string }) {
 
   return (
     <div className="space-y-6">
+      {/* Document Ingestion Sources */}
       <Card>
         <CardHeader>
-          <CardTitle>Document Knowledge Base</CardTitle>
+          <CardTitle>Document Ingestion Sources</CardTitle>
           <p className="text-sm text-slate-600">
-            Upload documents to train your chatbot. Supported formats: PDF, DOC, DOCX, TXT
+            Connect multiple sources to build your chatbot's knowledge base
           </p>
         </CardHeader>
-        <CardContent>
-          <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center">
-            <div className="space-y-4">
-              <div className="mx-auto w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                <i className="fas fa-cloud-upload-alt text-primary text-xl"></i>
-              </div>
-              <div>
-                <h3 className="text-lg font-medium text-slate-900">Upload Documents</h3>
-                <p className="text-sm text-slate-600">
-                  Drag and drop files here, or click to browse
-                </p>
-              </div>
-              <Button 
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-                data-testid="button-upload-document"
-              >
-                {uploading ? (
-                  <>
-                    <i className="fas fa-spinner fa-spin mr-2"></i>
-                    Scanning...
-                  </>
-                ) : (
-                  <>
-                    <i className="fas fa-plus mr-2"></i>
-                    Choose Files
-                  </>
-                )}
-              </Button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                accept=".pdf,.doc,.docx,.txt"
-                onChange={handleFileUpload}
-                className="hidden"
-              />
-              {uploading && (
-                <div className="mt-6 text-left">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm text-slate-600">{statusText || 'Processing...'}</p>
-                    <span className="text-xs text-slate-500">{Math.round(progress)}%</span>
-                  </div>
-                  <Progress value={progress} />
-                  <div className="flex items-center gap-2 mt-3 text-slate-500 text-xs">
-                    <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
-                    <span>Simulating scan steps while documents are being indexed...</span>
-                  </div>
+        <CardContent className="space-y-6">
+          {/* Cloud Storage Section */}
+          <div>
+            <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center">
+              <i className="fas fa-cloud text-blue-500 mr-2"></i>
+              Cloud Storage
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+              <button className="flex flex-col items-center justify-center p-4 border-2 border-slate-200 rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
+                <i className="fab fa-google-drive text-3xl text-green-500 mb-2 group-hover:scale-110 transition-transform"></i>
+                <span className="text-xs font-medium text-slate-700">Google Drive</span>
+              </button>
+              <button className="flex flex-col items-center justify-center p-4 border-2 border-slate-200 rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
+                <i className="fab fa-microsoft text-3xl text-blue-500 mb-2 group-hover:scale-110 transition-transform"></i>
+                <span className="text-xs font-medium text-slate-700">OneDrive</span>
+              </button>
+              <button className="flex flex-col items-center justify-center p-4 border-2 border-slate-200 rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
+                <i className="fab fa-microsoft text-3xl text-indigo-600 mb-2 group-hover:scale-110 transition-transform"></i>
+                <span className="text-xs font-medium text-slate-700">SharePoint</span>
+              </button>
+              <button className="flex flex-col items-center justify-center p-4 border-2 border-slate-200 rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
+                <i className="fab fa-dropbox text-3xl text-blue-600 mb-2 group-hover:scale-110 transition-transform"></i>
+                <span className="text-xs font-medium text-slate-700">Dropbox</span>
+              </button>
+              <button className="flex flex-col items-center justify-center p-4 border-2 border-slate-200 rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
+                <i className="fas fa-box text-3xl text-blue-700 mb-2 group-hover:scale-110 transition-transform"></i>
+                <span className="text-xs font-medium text-slate-700">Box</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Productivity Tools Section */}
+          <div>
+            <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center">
+              <i className="fas fa-briefcase text-purple-500 mr-2"></i>
+              Productivity & Knowledge Tools
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+              <button className="flex flex-col items-center justify-center p-4 border-2 border-slate-200 rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
+                <i className="fas fa-book text-3xl text-slate-800 mb-2 group-hover:scale-110 transition-transform"></i>
+                <span className="text-xs font-medium text-slate-700">Notion</span>
+              </button>
+              <button className="flex flex-col items-center justify-center p-4 border-2 border-slate-200 rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
+                <i className="fab fa-confluence text-3xl text-blue-600 mb-2 group-hover:scale-110 transition-transform"></i>
+                <span className="text-xs font-medium text-slate-700">Confluence</span>
+              </button>
+              <button className="flex flex-col items-center justify-center p-4 border-2 border-slate-200 rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
+                <i className="fab fa-slack text-3xl text-purple-600 mb-2 group-hover:scale-110 transition-transform"></i>
+                <span className="text-xs font-medium text-slate-700">Slack</span>
+              </button>
+              <button className="flex flex-col items-center justify-center p-4 border-2 border-slate-200 rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
+                <i className="fas fa-envelope text-3xl text-red-500 mb-2 group-hover:scale-110 transition-transform"></i>
+                <span className="text-xs font-medium text-slate-700">Gmail</span>
+              </button>
+              <button className="flex flex-col items-center justify-center p-4 border-2 border-slate-200 rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
+                <i className="fab fa-microsoft text-3xl text-blue-500 mb-2 group-hover:scale-110 transition-transform"></i>
+                <span className="text-xs font-medium text-slate-700">Outlook</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Other Sources Section */}
+          <div>
+            <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center">
+              <i className="fas fa-database text-orange-500 mr-2"></i>
+              Other Sources
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+              <button className="flex flex-col items-center justify-center p-4 border-2 border-slate-200 rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
+                <i className="fab fa-aws text-3xl text-orange-500 mb-2 group-hover:scale-110 transition-transform"></i>
+                <span className="text-xs font-medium text-slate-700">AWS S3</span>
+              </button>
+              <button className="flex flex-col items-center justify-center p-4 border-2 border-slate-200 rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
+                <i className="fab fa-google text-3xl text-blue-500 mb-2 group-hover:scale-110 transition-transform"></i>
+                <span className="text-xs font-medium text-slate-700">Google Cloud</span>
+              </button>
+              <button className="flex flex-col items-center justify-center p-4 border-2 border-slate-200 rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
+                <i className="fab fa-microsoft text-3xl text-blue-600 mb-2 group-hover:scale-110 transition-transform"></i>
+                <span className="text-xs font-medium text-slate-700">Azure Blob</span>
+              </button>
+              <button className="flex flex-col items-center justify-center p-4 border-2 border-slate-200 rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
+                <i className="fas fa-server text-3xl text-slate-600 mb-2 group-hover:scale-110 transition-transform"></i>
+                <span className="text-xs font-medium text-slate-700">FTP/SFTP</span>
+              </button>
+              <button className="flex flex-col items-center justify-center p-4 border-2 border-slate-200 rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
+                <i className="fas fa-file-archive text-3xl text-yellow-600 mb-2 group-hover:scale-110 transition-transform"></i>
+                <span className="text-xs font-medium text-slate-700">Zip Upload</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Direct File Upload */}
+          <div>
+            <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center">
+              <i className="fas fa-upload text-green-500 mr-2"></i>
+              Direct Upload
+            </h3>
+            <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center">
+              <div className="space-y-4">
+                <div className="mx-auto w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                  <i className="fas fa-cloud-upload-alt text-primary text-xl"></i>
                 </div>
-              )}
+                <div>
+                  <h3 className="text-lg font-medium text-slate-900">Upload Documents</h3>
+                  <p className="text-sm text-slate-600">
+                    Drag and drop files here, or click to browse
+                  </p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Supported formats: PDF, DOC, DOCX, TXT, PPTX, CSV, XLS, XLSX
+                  </p>
+                </div>
+                <Button 
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  data-testid="button-upload-document"
+                >
+                  {uploading ? (
+                    <>
+                      <i className="fas fa-spinner fa-spin mr-2"></i>
+                      Scanning...
+                    </>
+                  ) : (
+                    <>
+                      <i className="fas fa-plus mr-2"></i>
+                      Choose Files
+                    </>
+                  )}
+                </Button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  accept=".pdf,.doc,.docx,.txt,.pptx,.csv,.xls,.xlsx"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+                {uploading && (
+                  <div className="mt-6 text-left">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm text-slate-600">{statusText || 'Processing...'}</p>
+                      <span className="text-xs text-slate-500">{Math.round(progress)}%</span>
+                    </div>
+                    <Progress value={progress} />
+                    <div className="flex items-center gap-2 mt-3 text-slate-500 text-xs">
+                      <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                      <span>Simulating scan steps while documents are being indexed...</span>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </CardContent>
