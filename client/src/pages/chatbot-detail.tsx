@@ -1,4 +1,5 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useContext, createContext, useEffect } from "react";
+import ReactMarkdown from 'react-markdown';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useParams, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,10 @@ import { useToast } from "@/hooks/use-toast";
 import type { Chatbot, ChatMessage } from "@shared/schema";
 import DashboardLayout from "@/components/dashboard-layout";
 import { useTheme } from "@/components/theme-provider";
+import { Progress } from "@/components/ui/progress";
+
+// Create a context for tab management
+const TabContext = createContext<((tab: string) => void) | null>(null);
 
 // Dashboard Components
 function DashboardHeader({ user, onLogout }: { user: any; onLogout: () => void }) {
@@ -80,6 +85,9 @@ export default function ChatbotDetail() {
   const [, setLocation] = useLocation();
   const { theme } = useTheme();
   
+  // Provide the setActiveTab function through context
+  const handleTabChange = (tab: string) => setActiveTab(tab);
+  
   const { data: chatbot, isLoading } = useQuery<Chatbot>({
     queryKey: ["/api/chatbots", id],
   });
@@ -101,28 +109,29 @@ export default function ChatbotDetail() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className={`text-3xl font-bold mb-2 ${theme === 'dark' ? 'text-primary' : 'text-slate-900'}`}>{chatbot.name}</h1>
-              <p className={`text-lg font-semibold ${theme === 'dark' ? 'text-secondary' : 'text-slate-600'}`}>{chatbot.industry} • {chatbot.purpose}</p>
-            </div>
-            <div className="flex items-center space-x-3">
-              <Badge variant={chatbot.status === 'active' ? 'default' : 'secondary'}>
-                {chatbot.status}
-              </Badge>
-              <Button variant="outline" size="sm" onClick={() => setLocation(`/edit/${chatbot.id}`, { state: { chatbot } })}>
-                <i className="fas fa-edit mr-2"></i>
-                Edit Settings
-              </Button>
+      <TabContext.Provider value={handleTabChange}>
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h1 className={`text-3xl font-bold mb-2 ${theme === 'dark' ? 'text-primary' : 'text-slate-900'}`}>{chatbot.name}</h1>
+                <p className={`text-lg font-semibold ${theme === 'dark' ? 'text-secondary' : 'text-slate-600'}`}>{chatbot.industry} • {chatbot.purpose}</p>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Badge variant={chatbot.status === 'active' ? 'default' : 'secondary'}>
+                  {chatbot.status}
+                </Badge>
+                <Button variant="outline" size="sm" onClick={() => setLocation(`/edit/${chatbot.id}`, { state: { chatbot } })}>
+                  <i className="fas fa-edit mr-2"></i>
+                  Edit Settings
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          {/* Tabs */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>
@@ -152,6 +161,7 @@ export default function ChatbotDetail() {
           </TabsContent>
         </Tabs>
       </div>
+      </TabContext.Provider>
     </DashboardLayout>
   );
 }
@@ -259,44 +269,112 @@ function DocumentsTab({ chatbotId }: { chatbotId: string }) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [statusText, setStatusText] = useState("");
+  const [uploadedFiles, setUploadedFiles] = useState<{ name: string; size: string; timestamp: Date }[]>([]);
+  const progressTimerRef = useRef<number | null>(null);
+  const setActiveTab = useContext(TabContext);
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return bytes + ' B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  };
+
+  const startProgress = () => {
+    if (progressTimerRef.current) return;
+    setStatusText("Preparing documents for upload...");
+    progressTimerRef.current = window.setInterval(() => {
+      setProgress((prev) => {
+        const next = prev + (Math.random() * 5 + 2); // Slower +2 to +7
+        const clamped = Math.min(next, 90);
+        
+        // More detailed status messages
+        if (clamped < 20) setStatusText("Analyzing document structure...");
+        else if (clamped < 35) setStatusText("Extracting text content...");
+        else if (clamped < 50) setStatusText("Processing document sections...");
+        else if (clamped < 65) setStatusText("Optimizing for knowledge base...");
+        else if (clamped < 80) setStatusText("Generating semantic embeddings...");
+        else setStatusText("Finalizing knowledge base integration...");
+        
+        return clamped;
+      });
+    }, 600); // Slower updates
+  };
+
+  const stopProgress = () => {
+    if (progressTimerRef.current) {
+      clearInterval(progressTimerRef.current);
+      progressTimerRef.current = null;
+    }
+  };
 
   const uploadMutation = useMutation({
-    mutationFn: async (file: File) => {
+    mutationFn: async (files: File[]) => {
       const formData = new FormData();
-      formData.append('file', file);
-      formData.append('chatbotId', chatbotId);
-      
-      const response = await fetch('/api/documents/upload', {
+      for (const file of files) {
+        formData.append('files', file);
+      }
+      const url = `http://192.168.1.31:8006/api/v1/rag/upload-chatbot?chatbot_id=${encodeURIComponent(chatbotId)}`;
+      const response = await fetch(url, {
         method: 'POST',
         body: formData,
       });
+      if (!response.ok) throw new Error((await response.text()) || 'Upload failed');
+      return { data: await response.json(), files };
+    },
+    onSuccess: ({ data, files }) => {
+      stopProgress();
+      setProgress(100);
+      setStatusText("✨ Knowledge base successfully updated!");
       
-      if (!response.ok) throw new Error('Upload failed');
-      return response.json();
-    },
-    onSuccess: () => {
+      // Add uploaded files to the list
+      const newFiles = files.map(file => ({
+        name: file.name,
+        size: formatFileSize(file.size),
+        timestamp: new Date()
+      }));
+      setUploadedFiles(prev => [...newFiles, ...prev]);
+
       toast({
-        title: "Success",
-        description: "Document uploaded and processed successfully.",
+        title: "Documents Processed Successfully",
+        description: data?.message || "Your documents have been analyzed and added to the knowledge base.",
       });
+      
       queryClient.invalidateQueries({ queryKey: ["/api/documents", chatbotId] });
-      setUploading(false);
+      
+      // Switch to chat interface after a brief delay
+      setTimeout(() => {
+        setActiveTab?.("chat");
+        setUploading(false);
+        setProgress(0);
+        setStatusText("");
+      }, 1500);
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      stopProgress();
       toast({
         title: "Upload Failed",
-        description: error.message || "Failed to upload document",
+        description: error?.message || "Failed to process documents. Please try again.",
         variant: "destructive",
       });
       setUploading(false);
+      setProgress(0);
+      setStatusText("");
     },
   });
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
+    const files = event.target.files ? Array.from(event.target.files) : [];
+    if (files.length > 0) {
       setUploading(true);
-      uploadMutation.mutate(file);
+      setProgress(1);
+      setStatusText("Initializing upload...");
+      startProgress();
+      uploadMutation.mutate(files);
+      event.currentTarget.value = "";
     }
   };
 
@@ -329,7 +407,7 @@ function DocumentsTab({ chatbotId }: { chatbotId: string }) {
                 {uploading ? (
                   <>
                     <i className="fas fa-spinner fa-spin mr-2"></i>
-                    Processing...
+                    Scanning...
                   </>
                 ) : (
                   <>
@@ -346,6 +424,19 @@ function DocumentsTab({ chatbotId }: { chatbotId: string }) {
                 onChange={handleFileUpload}
                 className="hidden"
               />
+              {uploading && (
+                <div className="mt-6 text-left">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm text-slate-600">{statusText || 'Processing...'}</p>
+                    <span className="text-xs text-slate-500">{Math.round(progress)}%</span>
+                  </div>
+                  <Progress value={progress} />
+                  <div className="flex items-center gap-2 mt-3 text-slate-500 text-xs">
+                    <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                    <span>Simulating scan steps while documents are being indexed...</span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </CardContent>
@@ -357,28 +448,35 @@ function DocumentsTab({ chatbotId }: { chatbotId: string }) {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-red-100 rounded flex items-center justify-center">
-                  <i className="fas fa-file-pdf text-red-600"></i>
+            {uploadedFiles.length > 0 ? (
+              uploadedFiles.map((file, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg animate-fadeIn">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center">
+                      <i className={`fas fa-file-${file.name.toLowerCase().endsWith('.pdf') ? 'pdf text-red-600' : 'alt text-blue-600'}`}></i>
+                    </div>
+                    <div>
+                      <p className="font-medium text-slate-900">{file.name}</p>
+                      <p className="text-xs text-slate-500">
+                        Just now • {file.size}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Badge variant="default" className="bg-green-100 text-green-800">
+                      <i className="fas fa-check-circle mr-1"></i>
+                      Processed
+                    </Badge>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-medium text-slate-900">Sample FAQ.pdf</p>
-                  <p className="text-xs text-slate-500">Uploaded 2 hours ago • 1.2 MB</p>
-                </div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-slate-500">
+                <i className="fas fa-folder-open text-2xl mb-2"></i>
+                <p>No documents uploaded yet</p>
+                <p className="text-sm mt-1">Upload documents to train your chatbot</p>
               </div>
-              <div className="flex items-center space-x-2">
-                <Badge variant="secondary">Processed</Badge>
-                <Button variant="ghost" size="sm">
-                  <i className="fas fa-trash text-red-600"></i>
-                </Button>
-              </div>
-            </div>
-            
-            <div className="text-center py-8 text-slate-500">
-              <i className="fas fa-folder-open text-2xl mb-2"></i>
-              <p>No additional documents uploaded yet</p>
-            </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -387,42 +485,94 @@ function DocumentsTab({ chatbotId }: { chatbotId: string }) {
 }
 
 function ChatInterfaceTab({ chatbot }: { chatbot: Chatbot }) {
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: '1',
-      content: `Hello! I'm ${chatbot.name}, your AI assistant. How can I help you today?`,
-      sender: 'bot',
-      timestamp: new Date(),
-    }
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [sessionId, setSessionId] = useState('');
+  const [welcomeMessage, setWelcomeMessage] = useState(
+    `Hello! I'm ${chatbot.name}, your AI assistant. How can I help you today?`
+  );
+  const { toast } = useToast();
 
-  const sendMessage = async () => {
-    if (!inputMessage.trim()) return;
-
-    const userMessage: ChatMessage = {
-      id: Date.now().toString(),
-      content: inputMessage,
-      sender: 'user',
+  // Set initial welcome message when component mounts
+  useEffect(() => {
+    setMessages([{
+      id: 'welcome',
+      content: welcomeMessage,
+      sender: 'bot',
       timestamp: new Date(),
-    };
+    }]);
+  }, [welcomeMessage]);
 
-    setMessages(prev => [...prev, userMessage]);
-    setInputMessage('');
+  const sendMessage = async (messageText: string, isInitial = false) => {
+    const trimmedMessage = messageText.trim();
+    if (!trimmedMessage) return;
+
+    if (!isInitial) {
+      const userMessage: ChatMessage = {
+        id: Date.now().toString(),
+        content: trimmedMessage,
+        sender: 'user',
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, userMessage]);
+      setInputMessage('');
+    }
+    
     setIsTyping(true);
 
-    // Simulate bot response
-    setTimeout(() => {
+    try {
+      const response = await fetch('http://192.168.1.31:8006/api/v1/rag/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'accept': 'application/json'
+        },
+        body: JSON.stringify({
+          chatbot_id: chatbot.id,
+          query: trimmedMessage,
+          session_id: sessionId
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get response');
+      }
+
+      const data = await response.json();
+      
+      // Update session ID if this is first message
+      if (!sessionId) {
+        setSessionId(data.session_id);
+      }
+
       const botMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        content: "Thank you for your message! I'm here to help with any questions you have about our products and services.",
+        id: Date.now().toString(),
+        content: data.answer,
         sender: 'bot',
         timestamp: new Date(),
       };
+
       setMessages(prev => [...prev, botMessage]);
+    } catch (error) {
+      console.error('Chat error:', error);
+      toast({
+        title: "Chat Error",
+        description: "Failed to get response from the chatbot. Please try again.",
+        variant: "destructive"
+      });
+      
+      // Add error message to chat
+      const errorMessage: ChatMessage = {
+        id: Date.now().toString(),
+        content: "I apologize, but I'm having trouble responding right now. Please try again.",
+        sender: 'bot',
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   return (
@@ -466,7 +616,29 @@ function ChatInterfaceTab({ chatbot }: { chatbot: Chatbot }) {
                             : 'bg-slate-100 text-slate-900'
                         }`}
                       >
-                        <p className="text-sm">{message.content}</p>
+                        <div className="text-sm chat-message">
+                          {message.sender === 'bot' ? (
+                            <div className="prose prose-sm dark:prose-invert [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+                              <ReactMarkdown
+                                components={{
+                                  strong: ({...props}) => <span className="font-bold text-primary-600" {...props} />,
+                                  em: ({...props}) => <span className="italic text-primary-500" {...props} />,
+                                  ul: ({...props}) => <ul className="list-disc ml-4 mt-2" {...props} />,
+                                  ol: ({...props}) => <ol className="list-decimal ml-4 mt-2" {...props} />,
+                                  li: ({...props}) => <li className="mt-1" {...props} />,
+                                  p: ({...props}) => <p className="mb-2" {...props} />,
+                                  code: ({...props}) => (
+                                    <code className="bg-primary-100 dark:bg-primary-900 px-1 py-0.5 rounded" {...props} />
+                                  )
+                                }}
+                              >
+                                {message.content}
+                              </ReactMarkdown>
+                            </div>
+                          ) : (
+                            message.content
+                          )}
+                        </div>
                         <p className="text-xs mt-1 opacity-70">
                           {message.timestamp.toLocaleTimeString()}
                         </p>
@@ -494,10 +666,13 @@ function ChatInterfaceTab({ chatbot }: { chatbot: Chatbot }) {
                     value={inputMessage}
                     onChange={(e) => setInputMessage(e.target.value)}
                     placeholder="Type your message..."
-                    onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                    onKeyPress={(e) => e.key === 'Enter' && sendMessage(inputMessage)}
                     data-testid="input-chat-message"
                   />
-                  <Button onClick={sendMessage} data-testid="button-send-message">
+                  <Button 
+                    onClick={() => sendMessage(inputMessage)} 
+                    data-testid="button-send-message"
+                  >
                     <i className="fas fa-paper-plane"></i>
                   </Button>
                 </div>
@@ -517,9 +692,13 @@ function ChatInterfaceTab({ chatbot }: { chatbot: Chatbot }) {
               <Label>Welcome Message</Label>
               <Textarea
                 placeholder="Enter the initial greeting message..."
-                defaultValue={`Hello! I'm ${chatbot.name}, your AI assistant. How can I help you today?`}
+                value={welcomeMessage}
+                onChange={(e) => setWelcomeMessage(e.target.value)}
                 className="mt-1"
               />
+              <p className="text-xs text-slate-500 mt-1">
+                This message will be shown when the chat first opens
+              </p>
             </div>
             <div>
               <Label>Placeholder Text</Label>
@@ -537,7 +716,15 @@ function ChatInterfaceTab({ chatbot }: { chatbot: Chatbot }) {
                 className="mt-1"
               />
             </div>
-            <Button className="w-full">
+            <Button 
+              className="w-full"
+              onClick={() => {
+                toast({
+                  title: "Customizations Saved",
+                  description: "Your chat settings have been updated.",
+                });
+              }}
+            >
               Save Customizations
             </Button>
           </CardContent>
