@@ -78,7 +78,7 @@ function DashboardHeader({ user, onLogout }: { user: any; onLogout: () => void }
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <i className="fas fa-robot text-primary text-xl"></i>
-          <span className="text-white font-semibold">BOTSAi Dashboard</span>
+          <span className="text-white font-semibold">Vyoma.ai Dashboard</span>
         </div>
         <div className="flex items-center space-x-4">
           <span className="text-slate-300 text-sm">

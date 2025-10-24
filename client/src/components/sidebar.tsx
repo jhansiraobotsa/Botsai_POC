@@ -6,7 +6,7 @@ export default function Sidebar() {
   const { theme } = useTheme();
   return (
     <div className={
-      `w-64 border-r h-[calc(100vh-4rem)] ` +
+      `w-64 border-r h-full overflow-y-auto ` +
       (theme === "dark"
         ? "bg-slate-900 border-slate-800"
         : "bg-slate-50 border-slate-200")

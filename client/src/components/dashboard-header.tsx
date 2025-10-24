@@ -20,7 +20,7 @@ export default function DashboardHeader() {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4 cursor-pointer" onClick={() => setLocation("/")}>
           <i className="fas fa-robot text-primary text-xl"></i>
-          <span className={`font-semibold text-xl tracking-wide ${theme === 'dark' ? 'text-primary' : 'text-slate-100'}`}>BOTSAi Dashboard</span>
+          <span className={`font-semibold text-xl tracking-wide ${theme === 'dark' ? 'text-primary' : 'text-slate-100'}`}>Vyoma.ai Dashboard</span>
         </div>
         <div className="flex items-center space-x-4 relative">
           <button
