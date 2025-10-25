@@ -532,7 +532,7 @@ function DocumentsTab({ chatbotId }: { chatbotId: string }) {
                     </div>
                     <Progress value={progress} />
                     <div className="flex items-center gap-2 mt-3 text-slate-500 text-xs">
-                      <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                      <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span> 
                       <span>Simulating scan steps while documents are being indexed...</span>
                     </div>
                   </div>
