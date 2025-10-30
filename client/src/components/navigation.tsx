@@ -43,13 +43,13 @@ export default function Navigation() {
             <div className="hidden md:block">
               <div className="ml-10 flex items-baseline space-x-6">
                 <Link to="/features">
-                  <a className="text-slate-600 dark:text-slate-200 hover:text-primary dark:hover:text-primary px-3 py-2 text-sm font-medium transition-colors">Features</a>
+                  <a className="text-slate-600 dark:text-slate-200 hover:text-primary dark:hover:text-primary px-3 py-2 text-sm font-medium transition-colors">Platform</a>
                 </Link>
                 <Link to="/pricing">
                   <a className="text-slate-600 dark:text-slate-200 hover:text-primary dark:hover:text-primary px-3 py-2 text-sm font-medium transition-colors">Pricing</a>
                 </Link>
                 <Link to="/documentation">
-                  <a className="text-slate-600 dark:text-slate-200 hover:text-primary dark:hover:text-primary px-3 py-2 text-sm font-medium transition-colors">Docs</a>
+                  <a className="text-slate-600 dark:text-slate-200 hover:text-primary dark:hover:text-primary px-3 py-2 text-sm font-medium transition-colors">Resources</a>
                 </Link>
                 <Link to="/about">
                   <a className="text-slate-600 dark:text-slate-200 hover:text-primary dark:hover:text-primary px-3 py-2 text-sm font-medium transition-colors">About</a>
@@ -138,7 +138,7 @@ export default function Navigation() {
             <div className="px-2 pt-2 pb-3 space-y-1">
               <Link to="/features">
                 <a onClick={closeMobileMenu} className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 dark:text-slate-200 hover:text-primary hover:bg-slate-50 dark:hover:bg-slate-800">
-                  Features
+                  Platform
                 </a>
               </Link>
               <Link to="/pricing">
@@ -148,7 +148,7 @@ export default function Navigation() {
               </Link>
               <Link to="/documentation">
                 <a onClick={closeMobileMenu} className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 dark:text-slate-200 hover:text-primary hover:bg-slate-50 dark:hover:bg-slate-800">
-                  Documentation
+                  Resources
                 </a>
               </Link>
               <Link to="/about">

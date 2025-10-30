@@ -9,24 +9,24 @@ export default function Pricing() {
 
   const plans = [
     {
-      name: "Free Trial",
+      name: "Starter",
       price: "$0",
       period: "/14 days",
-      description: "Limited to Customer Support & FAQ chatbots only",
+      description: "Essential AI agent for customer engagement",
       features: [
-        "1 Customer Support/FAQ chatbot only",
-        "100 conversations/month",
-        "5 document uploads",
-        "Basic customization",
+        "1 AI agent deployment",
+        "100 intelligent interactions/month",
+        "5 knowledge document uploads",
+        "Basic white-label customization",
         "Email support"
       ],
       restrictedFeatures: [
-        "Industry-specific chatbots",
-        "E-commerce integration",
-        "Lead generation bots",
-        "Advanced analytics"
+        "Industry-specific agent frameworks",
+        "Commerce platform integration",
+        "Lead qualification automation",
+        "Advanced intelligence analytics"
       ],
-      cta: "Start Free Trial",
+      cta: "Begin Trial",
       ctaLink: "/login",
       variant: "outline" as const,
       popular: false
@@ -35,19 +35,19 @@ export default function Pricing() {
       name: "Professional",
       price: "$49",
       period: "/month",
-      description: "Full access to all chatbot types & features",
+      description: "Complete AI agent orchestration platform",
       features: [
-        "5 chatbots (all industry types)",
-        "1 MCP services for each chatbot",
-        "2,000 conversations/month",
-        "20 document uploads",
-        "Advanced customization",
-        "E-commerce integration",
-        "Lead generation bots",
-        "Analytics dashboard",
-        "Priority support"
+        "5 AI agents (all industry verticals)",
+        "1 MCP service per agent",
+        "2,000 intelligent interactions/month",
+        "20 knowledge base documents",
+        "Advanced agent customization",
+        "E-commerce platform integration",
+        "Automated lead qualification",
+        "Real-time analytics dashboard",
+        "Priority technical support"
       ],
-      cta: "Get Started",
+      cta: "Deploy Now",
       ctaLink: "/login",
       variant: "default" as const,
       popular: true
@@ -56,17 +56,17 @@ export default function Pricing() {
       name: "Enterprise",
       price: "$199",
       period: "/month",
-      description: "For large organizations with custom needs",
+      description: "Enterprise-scale AI transformation solution",
       features: [
-        "Unlimited chatbots (all types)",
-        "20,000 conversations/month",
-        "3 MCP services for each chatbot",
-        "Unlimited uploads",
-        "White-label solution",
-        "Custom integrations",
-        "Advanced analytics & reporting",
-        "Multi-language support",
-        "24/7 dedicated support"
+        "Unlimited AI agent deployments",
+        "20,000 intelligent interactions/month",
+        "3 MCP services per agent",
+        "Unlimited knowledge base capacity",
+        "Full white-label solution",
+        "Custom API & system integrations",
+        "Advanced intelligence & ROI analytics",
+        "Multi-language agent capabilities",
+        "24/7 dedicated success team"
       ],
       cta: "Contact Sales",
       ctaAction: handleContactSales,
@@ -80,9 +80,9 @@ export default function Pricing() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">
-            Simple, Transparent Pricing
+            Flexible Investment in AI Excellence
           </h2>
-          <p className="text-xl text-slate-600 dark:text-slate-300">Choose the plan that fits your business needs</p>
+          <p className="text-xl text-slate-600 dark:text-slate-300">Scale your AI capabilities as your organization grows</p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
@@ -120,7 +120,7 @@ export default function Pricing() {
                 {plan.restrictedFeatures && (
                   <>
                     <li className="border-t border-slate-200 dark:border-slate-700 pt-3 mt-3">
-                      <span className="text-sm font-medium text-slate-400 uppercase tracking-wide">Not Available in Free Trial</span>
+                      <span className="text-sm font-medium text-slate-400 uppercase tracking-wide">Upgrade to Unlock</span>
                     </li>
                     {plan.restrictedFeatures.map((feature, featureIndex) => (
                       <li key={`restricted-${featureIndex}`} className="flex items-center opacity-50">

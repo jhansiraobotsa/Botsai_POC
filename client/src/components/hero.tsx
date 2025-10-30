@@ -25,13 +25,13 @@ export default function Hero() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center">
           <h1 className="text-4xl md:text-6xl font-bold text-slate-900 dark:text-white mb-6">
-            Build AI Chatbots for
+            Deploy Intelligent AI Agents for
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary ml-3">
-              Any Industry
+              Enterprise Excellence
             </span>
           </h1>
           <p className="text-xl text-slate-600 dark:text-slate-300 mb-8 max-w-3xl mx-auto">
-            Create intelligent chatbots powered by your documents and website content. Deploy anywhere with our embeddable widget. No coding required.
+            Orchestrate autonomous AI agents powered by your enterprise knowledge base. Seamlessly integrate across your digital ecosystem with zero-code deployment.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
@@ -40,7 +40,7 @@ export default function Hero() {
               data-testid="button-start-trial-hero"
               onClick={handleStartTrial}
             >
-              Start Free Trial
+              Start Your AI Journey
             </Button>
             <Button 
               variant="outline" 
@@ -50,11 +50,11 @@ export default function Hero() {
               data-testid="button-watch-demo"
             >
               <i className="fas fa-play mr-2"></i>
-              Watch Demo
+              See AI in Action
             </Button>
           </div>
           <div className="mt-12">
-            <p className="text-sm text-slate-500 dark:text-slate-400 mb-8">Trusted by 10,000+ businesses worldwide</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-8">Powering 10,000+ enterprises globally with AI-driven intelligence</p>
             <div className="overflow-hidden relative max-w-4xl mx-auto">
               <div 
                 className="flex items-center space-x-12 animate-scroll"

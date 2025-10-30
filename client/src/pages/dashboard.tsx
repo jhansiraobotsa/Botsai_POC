@@ -65,8 +65,8 @@ export default function Dashboard() {
   return (
     <DashboardLayout>
       <div className="mb-6">
-        <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-primary' : 'text-slate-900'}`}>My Chatbots</h3>
-        <p className={`text-slate-600 ${theme === 'dark' ? 'text-secondary' : ''}`}>Manage and monitor your deployed chatbots</p>
+        <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-primary' : 'text-slate-900'}`}>AI Agent Hub</h3>
+        <p className={`text-slate-600 ${theme === 'dark' ? 'text-secondary' : ''}`}>Orchestrate and monitor your deployed AI agents</p>
       </div>
 
       {!chatbots || chatbots.length === 0 ? (

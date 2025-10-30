@@ -280,9 +280,25 @@ function DocumentsTab({ chatbotId }: { chatbotId: string }) {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [statusText, setStatusText] = useState("");
-  const [uploadedFiles, setUploadedFiles] = useState<{ name: string; size: string; timestamp: Date }[]>([]);
   const progressTimerRef = useRef<number | null>(null);
   const setActiveTab = useContext(TabContext);
+
+  // Load uploaded files from localStorage on mount
+  const [uploadedFiles, setUploadedFiles] = useState<{ name: string; size: string; timestamp: string }[]>(() => {
+    try {
+      const stored = localStorage.getItem(`uploadedFiles_${chatbotId}`);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // Save uploaded files to localStorage whenever they change
+  useEffect(() => {
+    if (uploadedFiles.length > 0) {
+      localStorage.setItem(`uploadedFiles_${chatbotId}`, JSON.stringify(uploadedFiles));
+    }
+  }, [uploadedFiles, chatbotId]);
 
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return bytes + ' B';
@@ -341,11 +357,11 @@ function DocumentsTab({ chatbotId }: { chatbotId: string }) {
       setProgress(100);
       setStatusText("✨ Knowledge base successfully updated!");
       
-      // Add uploaded files to the list
+      // Add uploaded files to the list with string timestamp for localStorage compatibility
       const newFiles = files.map(file => ({
         name: file.name,
         size: formatFileSize(file.size),
-        timestamp: new Date()
+        timestamp: new Date().toISOString()
       }));
       setUploadedFiles(prev => [...newFiles, ...prev]);
 
@@ -356,13 +372,12 @@ function DocumentsTab({ chatbotId }: { chatbotId: string }) {
       
       queryClient.invalidateQueries({ queryKey: ["/api/documents", chatbotId] });
       
-      // Switch to chat interface after a brief delay
+      // Reset upload state but DON'T switch tabs - keep user on documents tab
       setTimeout(() => {
-        setActiveTab?.("chat");
         setUploading(false);
         setProgress(0);
         setStatusText("");
-      }, 1500);
+      }, 2000);
     },
     onError: (error: any) => {
       stopProgress();
@@ -561,32 +576,65 @@ function DocumentsTab({ chatbotId }: { chatbotId: string }) {
         <CardContent>
           <div className="space-y-3">
             {uploadedFiles.length > 0 ? (
-              uploadedFiles.map((file, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg animate-fadeIn">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center">
-                      <i className={`fas fa-file-${file.name.toLowerCase().endsWith('.pdf') ? 'pdf text-red-600' : 'alt text-blue-600'}`}></i>
+              uploadedFiles.map((file, index) => {
+                const uploadTime = new Date(file.timestamp);
+                const now = new Date();
+                const diffMinutes = Math.floor((now.getTime() - uploadTime.getTime()) / 60000);
+                const timeAgo = diffMinutes < 1 ? 'Just now' : 
+                               diffMinutes < 60 ? `${diffMinutes}m ago` : 
+                               diffMinutes < 1440 ? `${Math.floor(diffMinutes / 60)}h ago` : 
+                               `${Math.floor(diffMinutes / 1440)}d ago`;
+
+                return (
+                  <div key={index} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg hover:shadow-md transition-shadow">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900 dark:to-blue-800 rounded-lg flex items-center justify-center">
+                        <i className={`fas ${
+                          file.name.toLowerCase().endsWith('.pdf') ? 'fa-file-pdf text-red-600' : 
+                          file.name.toLowerCase().endsWith('.doc') || file.name.toLowerCase().endsWith('.docx') ? 'fa-file-word text-blue-600' :
+                          file.name.toLowerCase().endsWith('.xls') || file.name.toLowerCase().endsWith('.xlsx') ? 'fa-file-excel text-green-600' :
+                          file.name.toLowerCase().endsWith('.ppt') || file.name.toLowerCase().endsWith('.pptx') ? 'fa-file-powerpoint text-orange-600' :
+                          'fa-file-alt text-blue-600'
+                        } text-lg`}></i>
+                      </div>
+                      <div>
+                        <p className="font-medium text-slate-900 dark:text-white">{file.name}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          {timeAgo} • {file.size}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium text-slate-900">{file.name}</p>
-                      <p className="text-xs text-slate-500">
-                        Just now • {file.size}
-                      </p>
+                    <div className="flex items-center space-x-2">
+                      <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                        <i className="fas fa-check-circle mr-1"></i>
+                        Processed
+                      </Badge>
+                      <button 
+                        className="text-slate-400 hover:text-red-600 transition-colors"
+                        onClick={() => {
+                          const newFiles = uploadedFiles.filter((_, i) => i !== index);
+                          setUploadedFiles(newFiles);
+                          if (newFiles.length === 0) {
+                            localStorage.removeItem(`uploadedFiles_${chatbotId}`);
+                          }
+                          toast({
+                            title: "Document removed",
+                            description: "Document removed from the list",
+                          });
+                        }}
+                        title="Remove from list"
+                      >
+                        <i className="fas fa-times"></i>
+                      </button>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge variant="default" className="bg-green-100 text-green-800">
-                      <i className="fas fa-check-circle mr-1"></i>
-                      Processed
-                    </Badge>
-                  </div>
-                </div>
-              ))
+                );
+              })
             ) : (
-              <div className="text-center py-8 text-slate-500">
-                <i className="fas fa-folder-open text-2xl mb-2"></i>
-                <p>No documents uploaded yet</p>
-                <p className="text-sm mt-1">Upload documents to train your chatbot</p>
+              <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+                <i className="fas fa-folder-open text-3xl mb-3"></i>
+                <p className="font-medium">No documents uploaded yet</p>
+                <p className="text-sm mt-1">Upload documents to train your AI agent</p>
               </div>
             )}
           </div>
@@ -601,9 +649,32 @@ function ChatInterfaceTab({ chatbot }: { chatbot: Chatbot }) {
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [sessionId, setSessionId] = useState('');
+  
+  // Customization states
   const [welcomeMessage, setWelcomeMessage] = useState(
     `Hello! I'm ${chatbot.name}, your AI assistant. How can I help you today?`
   );
+  const [chatName, setChatName] = useState(chatbot.name);
+  const [placeholderText, setPlaceholderText] = useState('Type your message...');
+  const [headerColor, setHeaderColor] = useState(chatbot.brandColor);
+  const [userBubbleColor, setUserBubbleColor] = useState('#6366f1');
+  const [botBubbleColor, setBotBubbleColor] = useState('#f1f5f9');
+  const [fontSize, setFontSize] = useState('14');
+  const [borderRadius, setBorderRadius] = useState('8');
+  const [widgetPosition, setWidgetPosition] = useState(chatbot.widgetPosition || 'bottom-right');
+  const [showAvatar, setShowAvatar] = useState(true);
+  const [typingIndicator, setTypingIndicator] = useState(true);
+  const [quickReplies, setQuickReplies] = useState<string[]>([
+    'Tell me more',
+    'How does this work?',
+    'Contact support'
+  ]);
+  const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([
+    'What are your business hours?',
+    'How can I contact you?',
+    'Tell me about your services'
+  ]);
+  
   const { toast } = useToast();
 
   // Set initial welcome message when component mounts
@@ -697,16 +768,24 @@ function ChatInterfaceTab({ chatbot }: { chatbot: Chatbot }) {
             <div className="border rounded-lg">
               {/* Chat Header */}
               <div 
-                className="p-4 border-b flex items-center space-x-3"
-                style={{ backgroundColor: chatbot.brandColor }}
+                className="p-4 border-b flex items-center space-x-3 transition-colors duration-300"
+                style={{ backgroundColor: headerColor }}
               >
-                <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
-                  <i className="fas fa-robot text-slate-600"></i>
+                {showAvatar && (
+                  <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md">
+                    <i className="fas fa-robot text-slate-600 text-lg"></i>
+                  </div>
+                )}
+                <div className="flex-1">
+                  <h3 className="font-semibold text-white">{chatName}</h3>
+                  <div className="flex items-center space-x-1">
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <p className="text-xs text-white/90">Online • Typically replies instantly</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-medium text-white">{chatbot.name}</h3>
-                  <p className="text-xs text-white/80">Online now</p>
-                </div>
+                <button className="text-white/80 hover:text-white">
+                  <i className="fas fa-ellipsis-v"></i>
+                </button>
               </div>
 
               {/* Messages */}
@@ -718,11 +797,16 @@ function ChatInterfaceTab({ chatbot }: { chatbot: Chatbot }) {
                       className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
                       <div
-                        className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                        className={`max-w-xs lg:max-w-md px-4 py-2.5 transition-all duration-300 ${
                           message.sender === 'user'
-                            ? 'bg-primary text-white'
-                            : 'bg-slate-100 text-slate-900'
+                            ? 'text-white shadow-md'
+                            : 'text-slate-900 shadow-sm'
                         }`}
+                        style={{
+                          backgroundColor: message.sender === 'user' ? userBubbleColor : botBubbleColor,
+                          borderRadius: `${borderRadius}px`,
+                          fontSize: `${fontSize}px`
+                        }}
                       >
                         <div className="text-sm chat-message">
                           {message.sender === 'bot' ? (
@@ -753,37 +837,82 @@ function ChatInterfaceTab({ chatbot }: { chatbot: Chatbot }) {
                       </div>
                     </div>
                   ))}
-                  {isTyping && (
-                    <div className="flex justify-start">
-                      <div className="bg-slate-100 px-4 py-2 rounded-lg">
-                        <div className="flex space-x-1">
-                          <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></div>
-                          <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                          <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  {isTyping && typingIndicator && (
+                    <div className="flex justify-start animate-in fade-in duration-300">
+                      <div className="px-4 py-3 shadow-sm" style={{ backgroundColor: botBubbleColor, borderRadius: `${borderRadius}px` }}>
+                        <div className="flex space-x-1.5">
+                          <div className="w-2.5 h-2.5 bg-slate-400 rounded-full animate-bounce"></div>
+                          <div className="w-2.5 h-2.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></div>
+                          <div className="w-2.5 h-2.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></div>
                         </div>
                       </div>
+                    </div>
+                  )}
+                  
+                  {/* Suggested Questions - Show when chat is empty */}
+                  {messages.length === 1 && suggestedQuestions.length > 0 && (
+                    <div className="space-y-2 mt-4">
+                      <p className="text-xs text-slate-500 font-medium">Suggested questions:</p>
+                      {suggestedQuestions.map((question, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => sendMessage(question)}
+                          className="block w-full text-left px-4 py-2 bg-white border border-slate-200 hover:border-primary hover:bg-primary/5 rounded-lg text-sm text-slate-700 transition-colors"
+                        >
+                          {question}
+                        </button>
+                      ))}
                     </div>
                   )}
                 </div>
               </ScrollArea>
 
+              {/* Quick Replies */}
+              {quickReplies.length > 0 && messages.length > 1 && (
+                <div className="px-4 py-2 border-t bg-slate-50">
+                  <div className="flex gap-2 overflow-x-auto">
+                    {quickReplies.map((reply, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => sendMessage(reply)}
+                        className="px-3 py-1.5 bg-white border border-slate-200 hover:border-primary hover:bg-primary/5 rounded-full text-xs whitespace-nowrap transition-colors"
+                      >
+                        {reply}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Input */}
-              <div className="p-4 border-t">
-                <div className="flex space-x-2">
+              <div className="p-4 border-t bg-white">
+                <div className="flex items-center space-x-2">
+                  <button className="text-slate-400 hover:text-slate-600">
+                    <i className="fas fa-paperclip"></i>
+                  </button>
                   <Input
                     value={inputMessage}
                     onChange={(e) => setInputMessage(e.target.value)}
-                    placeholder="Type your message..."
+                    placeholder={placeholderText}
                     onKeyPress={(e) => e.key === 'Enter' && sendMessage(inputMessage)}
                     data-testid="input-chat-message"
+                    className="flex-1"
                   />
+                  <button className="text-slate-400 hover:text-slate-600">
+                    <i className="fas fa-smile"></i>
+                  </button>
                   <Button 
                     onClick={() => sendMessage(inputMessage)} 
                     data-testid="button-send-message"
+                    style={{ backgroundColor: headerColor }}
+                    className="hover:opacity-90"
                   >
                     <i className="fas fa-paper-plane"></i>
                   </Button>
                 </div>
+                <p className="text-[10px] text-slate-400 mt-2 text-center">
+                  Powered by Vyoma.ai
+                </p>
               </div>
             </div>
           </CardContent>
@@ -793,80 +922,395 @@ function ChatInterfaceTab({ chatbot }: { chatbot: Chatbot }) {
       <div className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Chat Customization</CardTitle>
+            <CardTitle className="flex items-center justify-between">
+              <span>Agent Customization</span>
+              <Badge className="bg-blue-100 text-blue-800">Live Preview</Badge>
+            </CardTitle>
+            <p className="text-sm text-slate-600">
+              Customize your AI agent's appearance and behavior in real-time
+            </p>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label>Welcome Message</Label>
-              <Textarea
-                placeholder="Enter the initial greeting message..."
-                value={welcomeMessage}
-                onChange={(e) => setWelcomeMessage(e.target.value)}
-                className="mt-1"
-              />
-              <p className="text-xs text-slate-500 mt-1">
-                This message will be shown when the chat first opens
-              </p>
-            </div>
-            <div>
-              <Label>Placeholder Text</Label>
-              <Input
-                placeholder="Type your message..."
-                defaultValue="Type your message..."
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label>Chat Button Text</Label>
-              <Input
-                placeholder="Chat with us"
-                defaultValue="Chat with us"
-                className="mt-1"
-              />
-            </div>
-            <Button 
-              className="w-full"
-              onClick={() => {
-                toast({
-                  title: "Customizations Saved",
-                  description: "Your chat settings have been updated.",
-                });
-              }}
-            >
-              Save Customizations
-            </Button>
-          </CardContent>
-        </Card>
+          <CardContent>
+            <Tabs defaultValue="appearance" className="w-full">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="appearance">
+                  <i className="fas fa-palette mr-2"></i>
+                  Appearance
+                </TabsTrigger>
+                <TabsTrigger value="messages">
+                  <i className="fas fa-comment-dots mr-2"></i>
+                  Messages
+                </TabsTrigger>
+                <TabsTrigger value="behavior">
+                  <i className="fas fa-cog mr-2"></i>
+                  Behavior
+                </TabsTrigger>
+                <TabsTrigger value="advanced">
+                  <i className="fas fa-sliders-h mr-2"></i>
+                  Advanced
+                </TabsTrigger>
+              </TabsList>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Response Settings</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label>Response Style</Label>
-              <select className="w-full mt-1 p-2 border rounded-md">
-                <option>Helpful & Supportive</option>
-                <option>Professional & Formal</option>
-                <option>Friendly & Casual</option>
-                <option>Enthusiastic & Energetic</option>
-              </select>
-            </div>
-            <div>
-              <Label>Max Response Length</Label>
-              <Input
-                type="number"
-                placeholder="150"
-                defaultValue="150"
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label>Fallback Response</Label>
-              <Textarea
-                placeholder="I'm sorry, I didn't understand that. Could you please rephrase your question?"
-                className="mt-1"
-              />
+              {/* Appearance Tab */}
+              <TabsContent value="appearance" className="space-y-4 mt-4">
+                <div>
+                  <Label className="text-sm font-medium">Agent Name</Label>
+                  <Input
+                    value={chatName}
+                    onChange={(e) => setChatName(e.target.value)}
+                    className="mt-1.5"
+                    placeholder="My AI Assistant"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium">Header Color</Label>
+                    <div className="flex items-center space-x-2 mt-1.5">
+                      <input
+                        type="color"
+                        value={headerColor}
+                        onChange={(e) => setHeaderColor(e.target.value)}
+                        className="w-12 h-10 rounded cursor-pointer"
+                      />
+                      <Input
+                        value={headerColor}
+                        onChange={(e) => setHeaderColor(e.target.value)}
+                        className="flex-1"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="text-sm font-medium">User Bubble Color</Label>
+                    <div className="flex items-center space-x-2 mt-1.5">
+                      <input
+                        type="color"
+                        value={userBubbleColor}
+                        onChange={(e) => setUserBubbleColor(e.target.value)}
+                        className="w-12 h-10 rounded cursor-pointer"
+                      />
+                      <Input
+                        value={userBubbleColor}
+                        onChange={(e) => setUserBubbleColor(e.target.value)}
+                        className="flex-1"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium">Font Size: {fontSize}px</Label>
+                    <input
+                      type="range"
+                      min="12"
+                      max="18"
+                      value={fontSize}
+                      onChange={(e) => setFontSize(e.target.value)}
+                      className="w-full mt-1.5"
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="text-sm font-medium">Border Radius: {borderRadius}px</Label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="20"
+                      value={borderRadius}
+                      onChange={(e) => setBorderRadius(e.target.value)}
+                      className="w-full mt-1.5"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                  <div>
+                    <Label className="text-sm font-medium">Show Avatar</Label>
+                    <p className="text-xs text-slate-500">Display agent icon in chat header</p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={showAvatar}
+                    onChange={(e) => setShowAvatar(e.target.checked)}
+                    className="w-5 h-5"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Widget Position</Label>
+                  <select
+                    value={widgetPosition}
+                    onChange={(e) => setWidgetPosition(e.target.value)}
+                    className="w-full mt-1.5 p-2 border rounded-md"
+                  >
+                    <option value="bottom-right">Bottom Right</option>
+                    <option value="bottom-left">Bottom Left</option>
+                    <option value="top-right">Top Right</option>
+                    <option value="top-left">Top Left</option>
+                  </select>
+                </div>
+              </TabsContent>
+
+              {/* Messages Tab */}
+              <TabsContent value="messages" className="space-y-4 mt-4">
+                <div>
+                  <Label className="text-sm font-medium">Welcome Message</Label>
+                  <Textarea
+                    value={welcomeMessage}
+                    onChange={(e) => setWelcomeMessage(e.target.value)}
+                    className="mt-1.5"
+                    rows={3}
+                    placeholder="Hello! How can I help you today?"
+                  />
+                  <p className="text-xs text-slate-500 mt-1">
+                    First message users see when opening the chat
+                  </p>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Input Placeholder</Label>
+                  <Input
+                    value={placeholderText}
+                    onChange={(e) => setPlaceholderText(e.target.value)}
+                    className="mt-1.5"
+                  />
+                </div>
+
+                <Separator />
+
+                <div>
+                  <Label className="text-sm font-medium">Suggested Questions</Label>
+                  <p className="text-xs text-slate-500 mb-2">
+                    Show these questions when chat opens
+                  </p>
+                  {suggestedQuestions.map((question, idx) => (
+                    <div key={idx} className="flex items-center space-x-2 mb-2">
+                      <Input
+                        value={question}
+                        onChange={(e) => {
+                          const newQuestions = [...suggestedQuestions];
+                          newQuestions[idx] = e.target.value;
+                          setSuggestedQuestions(newQuestions);
+                        }}
+                        className="flex-1"
+                      />
+                      <button
+                        onClick={() => {
+                          setSuggestedQuestions(suggestedQuestions.filter((_, i) => i !== idx));
+                        }}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <i className="fas fa-times"></i>
+                      </button>
+                    </div>
+                  ))}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSuggestedQuestions([...suggestedQuestions, 'New question'])}
+                    className="w-full"
+                  >
+                    <i className="fas fa-plus mr-2"></i>
+                    Add Question
+                  </Button>
+                </div>
+
+                <Separator />
+
+                <div>
+                  <Label className="text-sm font-medium">Quick Replies</Label>
+                  <p className="text-xs text-slate-500 mb-2">
+                    Quick action buttons during conversation
+                  </p>
+                  {quickReplies.map((reply, idx) => (
+                    <div key={idx} className="flex items-center space-x-2 mb-2">
+                      <Input
+                        value={reply}
+                        onChange={(e) => {
+                          const newReplies = [...quickReplies];
+                          newReplies[idx] = e.target.value;
+                          setQuickReplies(newReplies);
+                        }}
+                        className="flex-1"
+                      />
+                      <button
+                        onClick={() => {
+                          setQuickReplies(quickReplies.filter((_, i) => i !== idx));
+                        }}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <i className="fas fa-times"></i>
+                      </button>
+                    </div>
+                  ))}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setQuickReplies([...quickReplies, 'Quick reply'])}
+                    className="w-full"
+                  >
+                    <i className="fas fa-plus mr-2"></i>
+                    Add Reply
+                  </Button>
+                </div>
+              </TabsContent>
+
+              {/* Behavior Tab */}
+              <TabsContent value="behavior" className="space-y-4 mt-4">
+                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                  <div>
+                    <Label className="text-sm font-medium">Typing Indicator</Label>
+                    <p className="text-xs text-slate-500">Show "..." when agent is responding</p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={typingIndicator}
+                    onChange={(e) => setTypingIndicator(e.target.checked)}
+                    className="w-5 h-5"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Response Style</Label>
+                  <select className="w-full mt-1.5 p-2 border rounded-md">
+                    <option>Professional & Formal</option>
+                    <option>Friendly & Conversational</option>
+                    <option>Concise & Direct</option>
+                    <option>Detailed & Educational</option>
+                  </select>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Response Tone</Label>
+                  <select className="w-full mt-1.5 p-2 border rounded-md">
+                    <option>Helpful & Supportive</option>
+                    <option>Enthusiastic & Energetic</option>
+                    <option>Calm & Reassuring</option>
+                    <option>Expert & Authoritative</option>
+                  </select>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Max Response Length (words)</Label>
+                  <Input
+                    type="number"
+                    defaultValue="150"
+                    className="mt-1.5"
+                  />
+                  <p className="text-xs text-slate-500 mt-1">
+                    Keep responses concise and focused
+                  </p>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Fallback Message</Label>
+                  <Textarea
+                    defaultValue="I'm not sure I understand. Could you please rephrase your question?"
+                    className="mt-1.5"
+                    rows={2}
+                  />
+                </div>
+              </TabsContent>
+
+              {/* Advanced Tab */}
+              <TabsContent value="advanced" className="space-y-4 mt-4">
+                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                  <div>
+                    <Label className="text-sm font-medium">Enable File Upload</Label>
+                    <p className="text-xs text-slate-500">Let users upload documents</p>
+                  </div>
+                  <input type="checkbox" className="w-5 h-5" />
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                  <div>
+                    <Label className="text-sm font-medium">Enable Voice Input</Label>
+                    <p className="text-xs text-slate-500">Speech-to-text functionality</p>
+                  </div>
+                  <input type="checkbox" className="w-5 h-5" />
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                  <div>
+                    <Label className="text-sm font-medium">Show Powered By Badge</Label>
+                    <p className="text-xs text-slate-500">Display "Powered by Vyoma.ai"</p>
+                  </div>
+                  <input type="checkbox" defaultChecked className="w-5 h-5" />
+                </div>
+
+                <Separator />
+
+                <div>
+                  <Label className="text-sm font-medium">Operating Hours</Label>
+                  <div className="grid grid-cols-2 gap-2 mt-1.5">
+                    <Input type="time" defaultValue="09:00" />
+                    <Input type="time" defaultValue="17:00" />
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Show offline message outside these hours
+                  </p>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Offline Message</Label>
+                  <Textarea
+                    defaultValue="We're currently offline. Leave a message and we'll get back to you!"
+                    className="mt-1.5"
+                    rows={2}
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Chat Language</Label>
+                  <select className="w-full mt-1.5 p-2 border rounded-md">
+                    <option>English</option>
+                    <option>Spanish</option>
+                    <option>French</option>
+                    <option>German</option>
+                    <option>Portuguese</option>
+                    <option>Japanese</option>
+                    <option>Chinese</option>
+                  </select>
+                </div>
+              </TabsContent>
+            </Tabs>
+
+            <Separator className="my-6" />
+
+            <div className="flex space-x-2">
+              <Button 
+                className="flex-1"
+                onClick={() => {
+                  toast({
+                    title: "Customizations Saved",
+                    description: "Your AI agent settings have been updated successfully.",
+                  });
+                }}
+              >
+                <i className="fas fa-save mr-2"></i>
+                Save All Changes
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => {
+                  // Reset to defaults
+                  setChatName(chatbot.name);
+                  setHeaderColor(chatbot.brandColor);
+                  setUserBubbleColor('#6366f1');
+                  setBotBubbleColor('#f1f5f9');
+                  setFontSize('14');
+                  setBorderRadius('8');
+                  toast({
+                    title: "Reset to Defaults",
+                    description: "All customizations have been reset.",
+                  });
+                }}
+              >
+                <i className="fas fa-undo mr-2"></i>
+                Reset
+              </Button>
             </div>
           </CardContent>
         </Card>

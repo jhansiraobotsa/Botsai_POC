@@ -17,22 +17,22 @@ export default function Sidebar() {
           className={`flex items-center space-x-3 px-3 py-2 rounded-lg ${theme === "dark" ? "text-slate-200 hover:bg-slate-800" : "text-slate-700 hover:bg-slate-100"} ${location === "/dashboard" ? (theme === "dark" ? "bg-slate-800" : "bg-slate-100") : ""}`}
         >
           <i className="fas fa-robot"></i>
-          <span>My Chatbots</span>
+          <span>My AI Agents</span>
         </Link>
         <Link
           to="/select-agent"
           className={`flex items-center space-x-3 px-3 py-2 rounded-lg ${theme === "dark" ? "text-slate-200 hover:bg-slate-800" : "text-slate-700 hover:bg-slate-100"} ${location === "/select-agent" || location === "/create" || location.startsWith("/database-agent") ? (theme === "dark" ? "bg-slate-800" : "bg-slate-100") : ""}`}
         >
           <i className="fas fa-plus"></i>
-          <span>Create New</span>
+          <span>Deploy Agent</span>
         </Link>
         <button className={`flex items-center space-x-3 px-3 py-2 rounded-lg w-full text-left ${theme === "dark" ? "text-slate-200 hover:bg-slate-800" : "text-slate-700 hover:bg-slate-100"}`}>
           <i className="fas fa-chart-bar"></i>
-          <span>Analytics</span>
+          <span>Intelligence Hub</span>
         </button>
         <button className={`flex items-center space-x-3 px-3 py-2 rounded-lg w-full text-left ${theme === "dark" ? "text-slate-200 hover:bg-slate-800" : "text-slate-700 hover:bg-slate-100"}`}>
           <i className="fas fa-cog"></i>
-          <span>Settings</span>
+          <span>Configuration</span>
         </button>
       </nav>
     </div>

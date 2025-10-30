@@ -21,7 +21,7 @@ export default function AboutPage() {
       bio: "Solutions architect and system design expert"
     },
     {
-      name: "Ravikanth Reddi",
+      name: "Ravikanth kandakatla",
       role: "AI Lead",
       initials: "RR",
       color: "bg-gradient-to-br from-green-500 to-green-700",
@@ -35,7 +35,7 @@ export default function AboutPage() {
       bio: "Expert in project management and delivery"
     },
     {
-      name: "Jhasnara Botsa",
+      name: "Jhansirao Botsa",
       role: "AI Developer",
       initials: "JB",
       color: "bg-gradient-to-br from-pink-500 to-pink-700",

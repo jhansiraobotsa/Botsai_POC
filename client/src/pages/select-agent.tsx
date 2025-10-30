@@ -10,49 +10,49 @@ export default function SelectAgent() {
   const agentTypes = [
     {
       id: "document",
-      title: "Document Agent",
-      description: "Create AI chatbots powered by your documents and website content",
+      title: "Knowledge Agent",
+      description: "Transform your enterprise knowledge base into an intelligent conversational AI",
       icon: "fa-file-alt",
       features: [
-        "Upload PDFs, DOCX, TXT files",
-        "Web scraping capabilities",
-        "RAG-based responses",
-        "Embed anywhere",
+        "Enterprise document intelligence",
+        "Automated knowledge extraction",
+        "RAG-powered responses",
+        "Universal deployment",
       ],
       available: true,
-      badge: "Popular",
+      badge: "Most Popular",
       badgeColor: "bg-blue-500",
       route: "/create",
     },
     {
       id: "database",
-      title: "Database Agent",
-      description: "Connect to databases and create intelligent query assistants",
+      title: "Data Intelligence Agent",
+      description: "Enable natural language access to your database infrastructure",
       icon: "fa-database",
       features: [
-        "Multiple database integrations",
-        "Natural language to SQL",
-        "Real-time data queries",
-        "Secure connections",
+        "Multi-source data integration",
+        "Natural language to SQL translation",
+        "Real-time query execution",
+        "Enterprise security protocols",
       ],
       available: true,
-      badge: "New",
+      badge: "Advanced",
       badgeColor: "bg-green-500",
       route: "/database-agent/create",
     },
     {
       id: "orchestration",
-      title: "Agentic Orchestration",
-      description: "Advanced multi-agent workflows and task automation",
+      title: "Enterprise Orchestration",
+      description: "Multi-agent ecosystem for complex business process automation",
       icon: "fa-project-diagram",
       features: [
-        "Multi-agent coordination",
-        "Complex workflow automation",
-        "Custom tool integration",
-        "Enterprise-grade security",
+        "Cross-functional agent coordination",
+        "Workflow orchestration engine",
+        "Custom integration framework",
+        "Enterprise compliance & security",
       ],
       available: false,
-      badge: "Coming Soon",
+      badge: "Enterprise",
       badgeColor: "bg-amber-500",
       route: null,
     },
@@ -74,10 +74,10 @@ export default function SelectAgent() {
       <div className="max-w-6xl mx-auto">
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-3">
-            Choose Your Agent Type
+            Deploy Your AI Agent
           </h1>
           <p className="text-slate-600 dark:text-slate-400 text-lg">
-            Select the type of AI agent you want to create
+            Choose the intelligent agent framework that aligns with your business objectives
           </p>
         </div>
 
@@ -128,13 +128,13 @@ export default function SelectAgent() {
                 >
                   {agent.available ? (
                     <>
-                      <i className="fas fa-arrow-right mr-2"></i>
-                      Get Started
+                      <i className="fas fa-rocket mr-2"></i>
+                      Deploy Agent
                     </>
                   ) : (
                     <>
-                      <i className="fas fa-envelope mr-2"></i>
-                      Contact Sales
+                      <i className="fas fa-briefcase mr-2"></i>
+                      Request Enterprise Access
                     </>
                   )}
                 </Button>

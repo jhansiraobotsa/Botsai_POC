@@ -2,38 +2,38 @@ export default function Features() {
   const features = [
     {
       icon: "fas fa-file-upload",
-      title: "Document Intelligence",
-      description: "Upload PDFs, docs, and text files. Our AI extracts knowledge to power your chatbot responses.",
+      title: "Enterprise Knowledge Base",
+      description: "Transform your documents, policies, and institutional knowledge into an intelligent AI agent that delivers instant, accurate responses.",
       color: "bg-primary"
     },
     {
       icon: "fas fa-globe",
-      title: "Website Crawling",
-      description: "Automatically scrape and analyze your website content for comprehensive chatbot training.",
+      title: "Automated Knowledge Extraction",
+      description: "Intelligently crawl and synthesize your digital assets to create a comprehensive, self-learning knowledge ecosystem.",
       color: "bg-secondary"
     },
     {
       icon: "fas fa-code",
-      title: "Easy Embed",
-      description: "Get iframe code and embed your chatbot anywhere. Works on any website or platform.",
+      title: "Seamless Integration",
+      description: "Deploy AI agents across your entire digital infrastructure with enterprise-grade APIs and embeddable components.",
       color: "bg-accent"
     },
     {
       icon: "fas fa-industry",
-      title: "Industry Specific",
-      description: "Optimized templates for healthcare, e-commerce, education, finance, and more.",
+      title: "Industry-Tailored Solutions",
+      description: "Pre-configured agent frameworks optimized for healthcare, financial services, retail, education, and enterprise sectors.",
       color: "bg-green-500"
     },
     {
       icon: "fas fa-palette",
-      title: "Custom Branding",
-      description: "Match your brand with custom colors, logos, and messaging styles.",
+      title: "White-Label Customization",
+      description: "Fully branded AI experiences that align with your corporate identity and customer touchpoints.",
       color: "bg-orange-500"
     },
     {
       icon: "fas fa-chart-line",
-      title: "Analytics",
-      description: "Track conversations, user satisfaction, and chatbot performance with detailed insights.",
+      title: "Advanced Analytics & Insights",
+      description: "Real-time intelligence on agent performance, user engagement patterns, and ROI metrics with actionable business insights.",
       color: "bg-red-500"
     }
   ];
@@ -43,10 +43,10 @@ export default function Features() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">
-            Everything you need to build intelligent chatbots
+            Enterprise-Grade AI Agent Orchestration Platform
           </h2>
           <p className="text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
-            From document analysis to custom branding, we've got you covered.
+            From intelligent knowledge extraction to seamless deployment—everything your organization needs to lead with AI.
           </p>
         </div>
         
