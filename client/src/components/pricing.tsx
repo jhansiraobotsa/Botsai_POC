@@ -76,21 +76,21 @@ export default function Pricing() {
   ];
 
   return (
-    <section id="pricing" className="py-20 bg-slate-50">
+    <section id="pricing" className="py-20 bg-slate-50 dark:bg-slate-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">
             Simple, Transparent Pricing
           </h2>
-          <p className="text-xl text-slate-600">Choose the plan that fits your business needs</p>
+          <p className="text-xl text-slate-600 dark:text-slate-300">Choose the plan that fits your business needs</p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
           {plans.map((plan, index) => (
             <div 
               key={index} 
-              className={`bg-white rounded-2xl p-8 hover:shadow-lg transition-shadow relative ${
-                plan.popular ? 'border-2 border-primary' : 'border border-slate-200'
+              className={`bg-white dark:bg-slate-800 rounded-2xl p-8 hover:shadow-lg transition-shadow relative ${
+                plan.popular ? 'border-2 border-primary' : 'border border-slate-200 dark:border-slate-700'
               }`}
             >
               {plan.popular && (
@@ -102,24 +102,24 @@ export default function Pricing() {
               )}
               
               <div className="text-center">
-                <h3 className="text-xl font-semibold text-slate-900 mb-2">{plan.name}</h3>
+                <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">{plan.name}</h3>
                 <div className="mb-4">
-                  <span className="text-4xl font-bold text-slate-900">{plan.price}</span>
-                  <span className="text-slate-600">{plan.period}</span>
+                  <span className="text-4xl font-bold text-slate-900 dark:text-white">{plan.price}</span>
+                  <span className="text-slate-600 dark:text-slate-400">{plan.period}</span>
                 </div>
-                <p className="text-slate-600 mb-6">{plan.description}</p>
+                <p className="text-slate-600 dark:text-slate-300 mb-6">{plan.description}</p>
               </div>
               
               <ul className="space-y-3 mb-8">
                 {plan.features.map((feature, featureIndex) => (
                   <li key={featureIndex} className="flex items-center">
                     <i className="fas fa-check text-green-500 mr-3"></i>
-                    <span className="text-slate-600">{feature}</span>
+                    <span className="text-slate-600 dark:text-slate-300">{feature}</span>
                   </li>
                 ))}
                 {plan.restrictedFeatures && (
                   <>
-                    <li className="border-t border-slate-200 pt-3 mt-3">
+                    <li className="border-t border-slate-200 dark:border-slate-700 pt-3 mt-3">
                       <span className="text-sm font-medium text-slate-400 uppercase tracking-wide">Not Available in Free Trial</span>
                     </li>
                     {plan.restrictedFeatures.map((feature, featureIndex) => (

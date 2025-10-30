@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { Chatbot } from "@shared/schema";
 import DashboardLayout from "@/components/dashboard-layout";
 import { useTheme } from "@/components/theme-provider";
+import { API_ENDPOINTS, transformFastAPIToFrontend, authenticatedFetch } from "@/lib/api-config";
 
 export default function Dashboard() {
   const { user, isLoading, logout } = useAuth();
@@ -18,15 +19,22 @@ export default function Dashboard() {
   const { theme } = useTheme();
 
   const { data: chatbots, isLoading: isChatbotsLoading } = useQuery<Chatbot[]>({
-    queryKey: ["/api/chatbots"],
+    queryKey: ["chatbots", user?.id],
     queryFn: async () => {
-      const token = localStorage.getItem("access_token");
-      const res = await fetch("/api/chatbots", {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      if (!res.ok) throw new Error("Failed to fetch chatbots");
-      return res.json();
+      if (!user?.id) return [];
+      const userId = user.id;
+      console.log("Fetching chatbots for user:", userId);
+      const res = await authenticatedFetch(API_ENDPOINTS.CHATBOT_BY_USER(userId));
+      if (!res.ok) {
+        console.error("Failed to fetch chatbots:", res.status, res.statusText);
+        throw new Error("Failed to fetch chatbots");
+      }
+      const data = await res.json();
+      console.log("Chatbots fetched:", data);
+      // Transform each chatbot from FastAPI format to frontend format
+      return Array.isArray(data) ? data.map(transformFastAPIToFrontend) : [];
     },
+    enabled: !!user?.id,
   });
 
   const handleLogout = () => {
@@ -35,6 +43,7 @@ export default function Dashboard() {
       title: "Goodbye!",
       description: "You have been logged out successfully.",
     });
+    setLocation("/login");
   };
 
   if (isLoading || isChatbotsLoading) {

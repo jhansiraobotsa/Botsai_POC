@@ -21,6 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { CreateChatbotForm } from "@shared/schema";
 import DashboardLayout from "@/components/dashboard-layout";
 import { useTheme } from "@/components/theme-provider";
+import { API_ENDPOINTS, transformFastAPIToFrontend, authenticatedFetch } from "@/lib/api-config";
 
 const STEPS = [
   "Basic Information",
@@ -132,17 +133,33 @@ export default function CreateChatbot() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const userPlan = user?.plan || "free";
   const { theme } = useTheme();
+
+  // Fetch user plan from /me endpoint
+  const { data: userInfo } = useQuery({
+    queryKey: ["user-info"],
+    queryFn: async () => {
+      const response = await authenticatedFetch(API_ENDPOINTS.AUTH_ME);
+      if (!response.ok) {
+        throw new Error("Failed to fetch user info");
+      }
+      return response.json();
+    },
+    enabled: !!(localStorage.getItem('token') || localStorage.getItem('access_token')),
+  });
+
+  // Get user plan from API response, fallback to "basic" if not available
+  const userPlan = userInfo?.plan || user?.plan || "basic";
 
   // If editing, fetch chatbot data (fix for TanStack Query v5+)
   const { data: chatbotToEdit } = useQuery({
     queryKey: ["edit-chatbot", params.id],
     queryFn: async () => {
       if (!params.id) return null;
-      const res = await fetch(`/api/chatbots/${params.id}`);
+      const res = await authenticatedFetch(API_ENDPOINTS.CHATBOT_BY_ID(params.id));
       if (!res.ok) throw new Error("Failed to fetch chatbot");
-      return res.json();
+      const data = await res.json();
+      return transformFastAPIToFrontend(data);
     },
     enabled: !!params.id,
   });
@@ -182,11 +199,14 @@ export default function CreateChatbot() {
 
   const createMutation = useMutation({
     mutationFn: async (data: CreateChatbotForm) => {
-      // Build payload for external API
-      const token = localStorage.getItem('access_token');
+      // Build payload for FastAPI upsert endpoint
+      if (!user?.id) {
+        throw new Error("User not authenticated");
+      }
+      
       const payload = {
         chatbot_name: data.name,
-        user_id: user?.email || "botsajhansirao@gmail.com",
+        user_id: user.id,
         user_steps_details: {
           name: data.name,
           industry: data.industry,
@@ -200,41 +220,49 @@ export default function CreateChatbot() {
           plan: userPlan || "basic"
         }
       };
-      const response = await fetch(
-        "http://192.168.1.31:8006/api/v1/auth/create-chatbot",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "accept": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {})
-          },
-          body: JSON.stringify(payload)
-        }
-      );
+      
+      console.log("Creating chatbot with payload:", payload);
+      
+      const response = await authenticatedFetch(API_ENDPOINTS.CHATBOT_UPSERT, {
+        method: "POST",
+        body: JSON.stringify(payload)
+      });
+      
       if (!response.ok) {
         const error = await response.json().catch(() => ({ detail: 'Network error' }));
         throw new Error(error.detail || `HTTP ${response.status}`);
       }
+      
       const apiData = await response.json();
-      // POST all original form data to memory, using id = _id from backend
-      const memRes = await apiRequest("POST", "/api/chatbots", {
-        ...data,
-        id: apiData._id,
-        userId: user?.email || "botsajhansirao@gmail.com",
-        status: "active"
-      });
-      return { ...memRes, id: apiData._id };
+      console.log("FastAPI response:", apiData);
+      
+      // FastAPI upsert returns: { "message": "Inserted/Updated", "id": "..." }
+      const chatbotId = apiData.id || apiData._id;
+      
+      if (!chatbotId) {
+        console.error("No chatbot ID in response:", apiData);
+        throw new Error("Failed to get chatbot ID from server response");
+      }
+      
+      return { id: chatbotId, data: apiData };
     },
-    onSuccess: (data) => {
+    onSuccess: (result) => {
+      console.log("Chatbot created successfully:", result);
       toast({
         title: "Success!",
         description: "Your chatbot has been created successfully.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/chatbots"] });
-      setLocation(`/chatbot/${data.id}`);
+      queryClient.invalidateQueries({ queryKey: ["chatbots"] });
+      
+      if (result.id) {
+        setLocation(`/chatbot/${result.id}`);
+      } else {
+        console.error("No ID in result, redirecting to dashboard");
+        setLocation("/dashboard");
+      }
     },
     onError: (error) => {
+      console.error("Create chatbot error:", error);
       toast({
         title: "Error",
         description: error.message || "Failed to create chatbot",
@@ -378,10 +406,10 @@ function BasicInformationStep({ form, userPlan }: { form: any; userPlan: string 
         render={({ field }) => (
           <FormItem>
             <FormLabel>What is your primary goal for this chatbot? *</FormLabel>
-            {userPlan === "free" && (
+            {(userPlan === "free" || userPlan === "basic") && (
               <Alert className="mb-4">
                 <AlertDescription>
-                  Free trial only includes Customer Support & FAQ chatbots. 
+                  {userPlan === "free" ? "Free trial" : "Basic plan"} only includes Customer Support & FAQ chatbots. 
                   <a href="#pricing" className="text-primary underline ml-1">Upgrade to Professional</a> for access to all chatbot types.
                 </AlertDescription>
               </Alert>
@@ -394,7 +422,7 @@ function BasicInformationStep({ form, userPlan }: { form: any; userPlan: string 
                 data-testid="radio-purpose"
               >
                 {PURPOSE_OPTIONS.map((purpose) => {
-                  const isDisabled = userPlan === "free" && purpose.isPremium;
+                  const isDisabled = (userPlan === "free" || userPlan === "basic") && purpose.isPremium;
                   return (
                     <div key={purpose.value} className={`flex items-center space-x-2 ${isDisabled ? 'opacity-50' : ''}`}>
                       <RadioGroupItem 

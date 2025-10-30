@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { API_ENDPOINTS, authenticatedFetch } from "@/lib/api-config";
 
 interface Message {
   id: string;
@@ -21,17 +22,32 @@ interface ChatInterfaceProps {
 export default function ChatInterface({ chatbotId }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState("");
+  const [sessionId, setSessionId] = useState(`test-session-${chatbotId}`);
   const { toast } = useToast();
-
-  const sessionId = `test-session-${chatbotId}`;
 
   const sendMessageMutation = useMutation({
     mutationFn: async (message: string) => {
-      const response = await apiRequest("POST", `/api/chatbots/${chatbotId}/chat`, {
-        message,
-        sessionId,
+      const response = await authenticatedFetch(API_ENDPOINTS.RAG_CHAT, {
+        method: 'POST',
+        body: JSON.stringify({
+          chatbot_id: chatbotId,
+          query: message,
+          session_id: sessionId
+        })
       });
-      return response.json();
+      
+      if (!response.ok) {
+        throw new Error('Failed to get response from chatbot');
+      }
+      
+      const data = await response.json();
+      
+      // Update session ID if this is first message
+      if (data.session_id) {
+        setSessionId(data.session_id);
+      }
+      
+      return data;
     },
     onSuccess: (data, variables) => {
       // Add user message
@@ -46,7 +62,7 @@ export default function ChatInterface({ chatbotId }: ChatInterfaceProps) {
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'bot',
-        content: data.response,
+        content: data.answer || data.response,
         timestamp: new Date().toISOString(),
       };
 

@@ -19,6 +19,7 @@ import type { Chatbot, ChatMessage } from "@shared/schema";
 import DashboardLayout from "@/components/dashboard-layout";
 import { useTheme } from "@/components/theme-provider";
 import { Progress } from "@/components/ui/progress";
+import { API_ENDPOINTS, transformFastAPIToFrontend, authenticatedFetch } from "@/lib/api-config";
 
 // Create a context for tab management
 const TabContext = createContext<((tab: string) => void) | null>(null);
@@ -89,7 +90,15 @@ export default function ChatbotDetail() {
   const handleTabChange = (tab: string) => setActiveTab(tab);
   
   const { data: chatbot, isLoading } = useQuery<Chatbot>({
-    queryKey: ["/api/chatbots", id],
+    queryKey: ["chatbot", id],
+    queryFn: async () => {
+      if (!id) throw new Error("No chatbot ID provided");
+      const response = await authenticatedFetch(API_ENDPOINTS.CHATBOT_BY_ID(id));
+      if (!response.ok) throw new Error("Failed to fetch chatbot");
+      const data = await response.json();
+      return transformFastAPIToFrontend(data);
+    },
+    enabled: !!id,
   });
 
   if (isLoading || !chatbot) {
@@ -317,9 +326,11 @@ function DocumentsTab({ chatbotId }: { chatbotId: string }) {
       for (const file of files) {
         formData.append('files', file);
       }
-      const url = `http://192.168.1.31:8006/api/v1/rag/upload-chatbot?chatbot_id=${encodeURIComponent(chatbotId)}`;
+      const url = API_ENDPOINTS.RAG_UPLOAD(chatbotId);
+      const token = localStorage.getItem('token') || localStorage.getItem('access_token');
       const response = await fetch(url, {
         method: 'POST',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
         body: formData,
       });
       if (!response.ok) throw new Error((await response.text()) || 'Upload failed');
@@ -623,12 +634,8 @@ function ChatInterfaceTab({ chatbot }: { chatbot: Chatbot }) {
     setIsTyping(true);
 
     try {
-      const response = await fetch('http://192.168.1.31:8006/api/v1/rag/chat', {
+      const response = await authenticatedFetch(API_ENDPOINTS.RAG_CHAT, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'accept': 'application/json'
-        },
         body: JSON.stringify({
           chatbot_id: chatbot.id,
           query: trimmedMessage,

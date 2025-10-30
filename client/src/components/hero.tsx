@@ -21,16 +21,16 @@ export default function Hero() {
   };
 
   return (
-    <section className="relative bg-gradient-to-br from-slate-50 to-indigo-50 py-20">
+    <section className="relative bg-gradient-to-br from-slate-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800 py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center">
-          <h1 className="text-4xl md:text-6xl font-bold text-slate-900 mb-6">
+          <h1 className="text-4xl md:text-6xl font-bold text-slate-900 dark:text-white mb-6">
             Build AI Chatbots for
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary ml-3">
               Any Industry
             </span>
           </h1>
-          <p className="text-xl text-slate-600 mb-8 max-w-3xl mx-auto">
+          <p className="text-xl text-slate-600 dark:text-slate-300 mb-8 max-w-3xl mx-auto">
             Create intelligent chatbots powered by your documents and website content. Deploy anywhere with our embeddable widget. No coding required.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -54,7 +54,7 @@ export default function Hero() {
             </Button>
           </div>
           <div className="mt-12">
-            <p className="text-sm text-slate-500 mb-8">Trusted by 10,000+ businesses worldwide</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-8">Trusted by 10,000+ businesses worldwide</p>
             <div className="overflow-hidden relative max-w-4xl mx-auto">
               <div 
                 className="flex items-center space-x-12 animate-scroll"
@@ -91,12 +91,12 @@ export default function Hero() {
                       <img
                         src={brand.logo}
                         alt={`${brand.name} logo`}
-                        className="max-h-8 max-w-full object-contain hover:scale-110 transition-all duration-300 ease-in-out opacity-70 hover:opacity-100"
+                        className="max-h-8 max-w-full object-contain hover:scale-110 transition-all duration-300 ease-in-out opacity-60 hover:opacity-100 dark:opacity-80 dark:hover:opacity-100 dark:grayscale dark:brightness-200"
                         onError={(e) => {
                           // Fallback to text with brand styling
                           const target = e.target as HTMLImageElement;
                           target.style.display = 'none';
-                          target.parentElement!.innerHTML = `<span class="text-sm font-bold text-slate-400 group-hover:text-primary transition-colors duration-300">${brand.name}</span>`;
+                          target.parentElement!.innerHTML = `<span class="text-sm font-bold text-slate-600 dark:text-slate-300 group-hover:text-primary transition-colors duration-300">${brand.name}</span>`;
                         }}
                       />
                     </div>

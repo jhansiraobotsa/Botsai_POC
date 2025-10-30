@@ -5,14 +5,14 @@ import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/theme-provider";
 
 export default function DashboardHeader() {
-  const { user, logoutMutation } = useAuth();
+  const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [, setLocation] = useLocation();
   const [showProfile, setShowProfile] = useState(false);
 
-  const handleLogout = async () => {
-    await logoutMutation.mutateAsync();
-    setLocation("/");
+  const handleLogout = () => {
+    logout();
+    setLocation("/login");
   };
 
   return (
@@ -56,11 +56,10 @@ export default function DashboardHeader() {
                 size="sm"
                 className="w-full text-left"
                 onClick={handleLogout}
-                disabled={logoutMutation.isPending}
                 data-testid="button-logout"
               >
                 <i className="fas fa-sign-out-alt mr-2"></i>
-                {logoutMutation.isPending ? "Logging out..." : "Logout"}
+                Logout
               </Button>
             </div>
           )}
