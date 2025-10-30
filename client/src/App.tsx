@@ -10,6 +10,8 @@ import Register from "@/pages/register";
 import Dashboard from "@/pages/dashboard";
 import CreateChatbot from "@/pages/create-chatbot";
 import ChatbotDetail from "@/pages/chatbot-detail";
+import SelectAgent from "@/pages/select-agent";
+import DatabaseAgentCreate from "@/pages/database-agent-create";
 import FeaturesPage from "@/pages/features";
 import AboutPage from "@/pages/about";
 import ContactPage from "@/pages/contact";
@@ -57,8 +59,14 @@ function Router() {
       <Route path="/dashboard">
         {() => <ProtectedRoute component={Dashboard} />}
       </Route>
+      <Route path="/select-agent">
+        {() => <ProtectedRoute component={SelectAgent} />}
+      </Route>
       <Route path="/create">
         {() => <ProtectedRoute component={CreateChatbot} />}
+      </Route>
+      <Route path="/database-agent/create">
+        {() => <ProtectedRoute component={DatabaseAgentCreate} />}
       </Route>
       <Route path="/edit/:id">
         {(params) => <ProtectedRoute component={CreateChatbot} params={params} />}

@@ -70,15 +70,15 @@ export default function Dashboard() {
       </div>
 
       {!chatbots || chatbots.length === 0 ? (
-        <Card className="text-center py-12">
+        <Card className="text-center py-12 dark:bg-slate-800 dark:border-slate-700">
           <CardContent>
             <i className="fas fa-robot text-4xl text-slate-400 mb-4"></i>
-            <h4 className="text-lg font-semibold text-slate-900 mb-2">No chatbots yet</h4>
-            <p className="text-slate-600 mb-6">Create your first chatbot to get started</p>
-            <Link to="/create">
+            <h4 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">No agents yet</h4>
+            <p className="text-slate-600 dark:text-slate-400 mb-6">Create your first AI agent to get started</p>
+            <Link to="/select-agent">
               <Button data-testid="button-create-first-chatbot">
                 <i className="fas fa-plus mr-2"></i>
-                Create Your First Chatbot
+                Create Your First Agent
               </Button>
             </Link>
           </CardContent>
