@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test All Embed Methods - Vyoma AI Widget</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 40px;
+    }
+
+    .header h1 {
+      font-size: 42px;
+      margin-bottom: 10px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+
+    .header p {
+      font-size: 18px;
+      opacity: 0.95;
+    }
+
+    .methods-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 30px;
+      margin-bottom: 40px;
+    }
+
+    .method-card {
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+
+    .method-card h2 {
+      color: #1e293b;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .method-card .icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+
+    .badge {
+      display: inline-block;
+      background: #10b981;
+      color: white;
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+      margin-left: 10px;
+    }
+
+    .badge-info {
+      background: #3b82f6;
+    }
+
+    .description {
+      color: #64748b;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    .features {
+      list-style: none;
+      padding: 0;
+      margin: 20px 0;
+    }
+
+    .features li {
+      padding: 8px 0;
+      padding-left: 30px;
+      position: relative;
+      color: #475569;
+    }
+
+    .features li:before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: #10b981;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    .code-box {
+      background: #1e293b;
+      color: #10b981;
+      padding: 20px;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      overflow-x: auto;
+      margin: 15px 0;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.3s;
+      margin-right: 10px;
+      margin-top: 10px;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-outline {
+      background: white;
+      color: #667eea;
+      border: 2px solid #667eea;
+    }
+
+    .btn-outline:hover {
+      background: #667eea;
+      color: white;
+    }
+
+    .alert {
+      background: #dbeafe;
+      border-left: 4px solid #3b82f6;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 30px 0;
+      color: #1e40af;
+    }
+
+    .alert h3 {
+      margin-bottom: 10px;
+      color: #1e3a8a;
+    }
+
+    .test-section {
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      margin: 30px 0;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+
+    .test-section h2 {
+      color: #1e293b;
+      margin-bottom: 20px;
+    }
+
+    .step {
+      display: flex;
+      gap: 15px;
+      margin: 15px 0;
+      align-items: start;
+    }
+
+    .step-number {
+      width: 32px;
+      height: 32px;
+      background: #667eea;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 768px) {
+      .methods-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .header h1 {
+        font-size: 32px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🚀 Vyoma AI Widget - All Embed Methods</h1>
+      <p>Test all three embedding methods with minimize functionality</p>
+    </div>
+
+    <div class="alert">
+      <h3>⚠️ Before Testing</h3>
+      <p><strong>Important:</strong> Replace <code>YOUR_CHATBOT_ID</code> in the code below with your actual chatbot ID!</p>
+      <p>Make sure your FastAPI backend is running on <code>http://192.168.1.31:8006</code> with CORS enabled.</p>
+    </div>
+
+    <div class="methods-grid">
+      <!-- Method 1: Popup Widget -->
+      <div class="method-card">
+        <h2>
+          <div class="icon">💬</div>
+          <span>Method 1: Popup Widget</span>
+          <span class="badge">RECOMMENDED</span>
+        </h2>
+        <p class="description">
+          A floating button appears in the corner. Click to open/close the chat. 
+          Perfect for all websites - non-intrusive and always accessible.
+        </p>
+        <ul class="features">
+          <li>Floating button in corner</li>
+          <li>Click to open chat</li>
+          <li>Click minimize → Shows button</li>
+          <li>Click button → Reopens chat</li>
+          <li>Most user-friendly!</li>
+        </ul>
+        <h4 style="margin-top: 20px; margin-bottom: 10px; color: #1e293b;">Embed Code:</h4>
+        <div class="code-box">&lt;!-- Vyoma AI Popup Widget --&gt;
+&lt;script
+  src="http://localhost:3000/widget.js"
+  data-chatbot-id="YOUR_CHATBOT_ID"
+  data-api-url="http://192.168.1.31:8006"
+  data-position="bottom-right"
+  data-color="#6366f1"
+  async
+&gt;&lt;/script&gt;</div>
+        <button class="btn" onclick="copyCode('popup')">
+          <i class="fas fa-copy"></i> Copy Code
+        </button>
+        <button class="btn btn-outline" onclick="testPopup()">
+          <i class="fas fa-play"></i> Test Now
+        </button>
+      </div>
+
+      <!-- Method 2: Iframe Embed -->
+      <div class="method-card">
+        <h2>
+          <div class="icon">🖼️</div>
+          <span>Method 2: Iframe Embed</span>
+          <span class="badge badge-info">ALWAYS VISIBLE</span>
+        </h2>
+        <p class="description">
+          The chat is always visible in a fixed position. Users can minimize it to a button.
+          Good for help centers or documentation pages.
+        </p>
+        <ul class="features">
+          <li>Chat always visible</li>
+          <li>Fixed position on page</li>
+          <li>Click minimize → Shows button</li>
+          <li>Click button → Reopens chat</li>
+          <li>No initial button needed</li>
+        </ul>
+        <h4 style="margin-top: 20px; margin-bottom: 10px; color: #1e293b;">Embed Code:</h4>
+        <div class="code-box">&lt;!-- Vyoma AI Iframe Embed --&gt;
+&lt;iframe
+  src="http://localhost:3000/widget.html?id=YOUR_CHATBOT_ID&api=http://192.168.1.31:8006"
+  width="400"
+  height="600"
+  frameborder="0"
+  style="position: fixed; bottom: 20px; right: 20px; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); z-index: 9999;"
+&gt;&lt;/iframe&gt;</div>
+        <button class="btn" onclick="copyCode('iframe')">
+          <i class="fas fa-copy"></i> Copy Code
+        </button>
+        <button class="btn btn-outline" onclick="testIframe()">
+          <i class="fas fa-play"></i> Test Now
+        </button>
+      </div>
+
+      <!-- Method 3: Custom Script -->
+      <div class="method-card">
+        <h2>
+          <div class="icon">💻</div>
+          <span>Method 3: Custom Script</span>
+          <span class="badge badge-info">ADVANCED</span>
+        </h2>
+        <p class="description">
+          Load the widget dynamically via JavaScript. Same as iframe but programmatically injected.
+          Good for dynamic loading or A/B testing.
+        </p>
+        <ul class="features">
+          <li>Programmatic injection</li>
+          <li>Dynamic loading control</li>
+          <li>Click minimize → Shows button</li>
+          <li>Click button → Reopens chat</li>
+          <li>Good for advanced uses</li>
+        </ul>
+        <h4 style="margin-top: 20px; margin-bottom: 10px; color: #1e293b;">Embed Code:</h4>
+        <div class="code-box">&lt;!-- Vyoma AI Custom Script --&gt;
+&lt;script&gt;
+(function() {
+  var iframe = document.createElement('iframe');
+  iframe.src = 'http://localhost:3000/widget.html?id=YOUR_CHATBOT_ID&api=http://192.168.1.31:8006';
+  iframe.style.cssText = 'position: fixed; bottom: 20px; right: 20px; width: 400px; height: 600px; border: none; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); z-index: 9999;';
+  document.body.appendChild(iframe);
+})();
+&lt;/script&gt;</div>
+        <button class="btn" onclick="copyCode('script')">
+          <i class="fas fa-copy"></i> Copy Code
+        </button>
+        <button class="btn btn-outline" onclick="testScript()">
+          <i class="fas fa-play"></i> Test Now
+        </button>
+      </div>
+    </div>
+
+    <!-- Testing Instructions -->
+    <div class="test-section">
+      <h2>🎯 How to Test Each Method</h2>
+      
+      <div class="step">
+        <div class="step-number">1</div>
+        <div>
+          <strong>Method 1 (Popup Widget):</strong><br>
+          Click "Test Now" → A floating button appears in bottom-right<br>
+          Click button → Chat opens<br>
+          Click [─] minimize → Back to button<br>
+          Click button again → Chat reopens!
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">2</div>
+        <div>
+          <strong>Method 2 (Iframe Embed):</strong><br>
+          Click "Test Now" → Chat window appears immediately<br>
+          Click [─] minimize → Chat hides, button appears<br>
+          Click button → Chat reopens!
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">3</div>
+        <div>
+          <strong>Method 3 (Custom Script):</strong><br>
+          Same as Method 2, but loaded via JavaScript
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Demo -->
+    <div class="test-section">
+      <h2>🎬 Live Demo</h2>
+      <p>Click the buttons above to test each method. The widgets will appear on this page!</p>
+      <p><strong>Note:</strong> Only one widget at a time to avoid conflicts. Close the current one before testing another.</p>
+      <div style="margin-top: 20px;">
+        <button class="btn" onclick="clearWidgets()">
+          <i class="fas fa-trash"></i> Clear All Widgets
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script>
+    const CHATBOT_ID = 'YOUR_CHATBOT_ID'; // 🚨 REPLACE THIS!
+    const API_URL = 'http://192.168.1.31:8006';
+
+    function copyCode(type) {
+      let code = '';
+      switch(type) {
+        case 'popup':
+          code = `<!-- Vyoma AI Popup Widget -->
+<script
+  src="http://localhost:3000/widget.js"
+  data-chatbot-id="${CHATBOT_ID}"
+  data-api-url="${API_URL}"
+  data-position="bottom-right"
+  data-color="#6366f1"
+  async
+><\/script>`;
+          break;
+        case 'iframe':
+          code = `<!-- Vyoma AI Iframe Embed -->
+<iframe
+  src="http://localhost:3000/widget.html?id=${CHATBOT_ID}&api=${API_URL}"
+  width="400"
+  height="600"
+  frameborder="0"
+  style="position: fixed; bottom: 20px; right: 20px; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); z-index: 9999;"
+></iframe>`;
+          break;
+        case 'script':
+          code = `<!-- Vyoma AI Custom Script -->
+<script>
+(function() {
+  var iframe = document.createElement('iframe');
+  iframe.src = 'http://localhost:3000/widget.html?id=${CHATBOT_ID}&api=${API_URL}';
+  iframe.style.cssText = 'position: fixed; bottom: 20px; right: 20px; width: 400px; height: 600px; border: none; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); z-index: 9999;';
+  document.body.appendChild(iframe);
+})();
+<\/script>`;
+          break;
+      }
+      
+      navigator.clipboard.writeText(code).then(() => {
+        alert('✅ Code copied to clipboard!');
+      });
+    }
+
+    function testPopup() {
+      clearWidgets();
+      
+      if (CHATBOT_ID === 'YOUR_CHATBOT_ID') {
+        alert('⚠️ Please update CHATBOT_ID in the code first!');
+        return;
+      }
+      
+      const script = document.createElement('script');
+      script.src = 'http://localhost:3000/widget.js';
+      script.setAttribute('data-chatbot-id', CHATBOT_ID);
+      script.setAttribute('data-api-url', API_URL);
+      script.setAttribute('data-position', 'bottom-right');
+      script.setAttribute('data-color', '#6366f1');
+      script.id = 'test-popup-widget';
+      document.body.appendChild(script);
+      
+      setTimeout(() => {
+        alert('✅ Popup widget loaded! Look at the bottom-right corner for the floating button.');
+      }, 1000);
+    }
+
+    function testIframe() {
+      clearWidgets();
+      
+      if (CHATBOT_ID === 'YOUR_CHATBOT_ID') {
+        alert('⚠️ Please update CHATBOT_ID in the code first!');
+        return;
+      }
+      
+      const iframe = document.createElement('iframe');
+      iframe.src = `http://localhost:3000/widget.html?id=${CHATBOT_ID}&api=${API_URL}`;
+      iframe.style.cssText = 'position: fixed; bottom: 20px; right: 20px; width: 400px; height: 600px; border: none; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); z-index: 9999;';
+      iframe.id = 'test-iframe-widget';
+      document.body.appendChild(iframe);
+      
+      alert('✅ Iframe widget loaded! Look at the bottom-right corner. Try minimizing it!');
+    }
+
+    function testScript() {
+      clearWidgets();
+      
+      if (CHATBOT_ID === 'YOUR_CHATBOT_ID') {
+        alert('⚠️ Please update CHATBOT_ID in the code first!');
+        return;
+      }
+      
+      const iframe = document.createElement('iframe');
+      iframe.src = `http://localhost:3000/widget.html?id=${CHATBOT_ID}&api=${API_URL}`;
+      iframe.style.cssText = 'position: fixed; bottom: 20px; right: 20px; width: 400px; height: 600px; border: none; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); z-index: 9999;';
+      iframe.id = 'test-script-widget';
+      document.body.appendChild(iframe);
+      
+      alert('✅ Script widget loaded! Look at the bottom-right corner. Try minimizing it!');
+    }
+
+    function clearWidgets() {
+      // Remove all test widgets
+      const popupScript = document.getElementById('test-popup-widget');
+      if (popupScript) popupScript.remove();
+      
+      const iframeWidget = document.getElementById('test-iframe-widget');
+      if (iframeWidget) iframeWidget.remove();
+      
+      const scriptWidget = document.getElementById('test-script-widget');
+      if (scriptWidget) scriptWidget.remove();
+      
+      // Remove popup widget elements
+      const widgetButton = document.querySelector('.vyoma-widget-button');
+      if (widgetButton) widgetButton.remove();
+      
+      const widgetContainer = document.querySelector('.vyoma-widget-container');
+      if (widgetContainer) widgetContainer.remove();
+      
+      const widgetTooltip = document.querySelector('.vyoma-widget-tooltip');
+      if (widgetTooltip) widgetTooltip.remove();
+      
+      // Remove minimized buttons
+      const minimizedBtns = document.querySelectorAll('#minimized-widget-btn');
+      minimizedBtns.forEach(btn => btn.remove());
+    }
+
+    // Check if chatbot ID is updated
+    setTimeout(() => {
+      if (CHATBOT_ID === 'YOUR_CHATBOT_ID') {
+        console.warn('⚠️ Please update CHATBOT_ID in the script!');
+      }
+    }, 1000);
+  </script>
+</body>
+</html>
+

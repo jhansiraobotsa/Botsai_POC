@@ -12,6 +12,13 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -277,28 +284,93 @@ function DocumentsTab({ chatbotId }: { chatbotId: string }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [statusText, setStatusText] = useState("");
   const progressTimerRef = useRef<number | null>(null);
   const setActiveTab = useContext(TabContext);
-
-  // Load uploaded files from localStorage on mount
-  const [uploadedFiles, setUploadedFiles] = useState<{ name: string; size: string; timestamp: string }[]>(() => {
-    try {
-      const stored = localStorage.getItem(`uploadedFiles_${chatbotId}`);
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
+  
+  // Cloud storage states
+  const [showCloudPicker, setShowCloudPicker] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState<string>('');
+  const [cloudConnections, setCloudConnections] = useState<Record<string, boolean>>({
+    google_drive: false,
+    onedrive: false,
+    sharepoint: false,
+    dropbox: false,
+    box: false
   });
 
-  // Save uploaded files to localStorage whenever they change
+  // Uploaded files for current session only (not persisted)
+  const [uploadedFiles, setUploadedFiles] = useState<{ name: string; size: string; timestamp: string }[]>([]);
+  
+  // Load cloud storage connections status
   useEffect(() => {
-    if (uploadedFiles.length > 0) {
-      localStorage.setItem(`uploadedFiles_${chatbotId}`, JSON.stringify(uploadedFiles));
+    loadConnectionsStatus();
+  }, []);
+
+  const loadConnectionsStatus = async () => {
+    // TODO: Replace with actual API call when backend is ready
+    // For now, check localStorage for demo purposes
+    const connections = {
+      google_drive: localStorage.getItem('connected_google_drive') === 'true',
+      onedrive: localStorage.getItem('connected_onedrive') === 'true',
+      sharepoint: localStorage.getItem('connected_sharepoint') === 'true',
+      dropbox: localStorage.getItem('connected_dropbox') === 'true',
+      box: localStorage.getItem('connected_box') === 'true'
+    };
+    setCloudConnections(connections);
+  };
+
+  const handleCloudStorageConnect = async (provider: string) => {
+    try {
+      toast({
+        title: "Connecting...",
+        description: `Opening ${provider} authentication window...`,
+      });
+      
+      // For demo: simulate OAuth flow
+      // TODO: Replace with actual OAuth implementation using oauth-handler.ts
+      setTimeout(() => {
+        localStorage.setItem(`connected_${provider}`, 'true');
+        setCloudConnections(prev => ({ ...prev, [provider]: true }));
+        toast({
+          title: "Connected Successfully",
+          description: `Your ${provider} account has been connected!`,
+        });
+      }, 1500);
+      
+      // Actual implementation would be:
+      // const { initiateOAuth } = await import('@/utils/oauth-handler');
+      // await initiateOAuth(provider as CloudProvider, user?.id || '');
+      // await loadConnectionsStatus();
+    } catch (error: any) {
+      toast({
+        title: "Connection Failed",
+        description: error.message || "Failed to connect cloud storage",
+        variant: "destructive",
+      });
     }
-  }, [uploadedFiles, chatbotId]);
+  };
+
+  const handleCloudStorageBrowse = (provider: string) => {
+    if (!cloudConnections[provider as keyof typeof cloudConnections]) {
+      handleCloudStorageConnect(provider);
+    } else {
+      setSelectedProvider(provider);
+      setShowCloudPicker(true);
+    }
+  };
+  
+  const handleDisconnect = async (provider: string) => {
+    localStorage.removeItem(`connected_${provider}`);
+    setCloudConnections(prev => ({ ...prev, [provider]: false }));
+    toast({
+      title: "Disconnected",
+      description: `${provider} has been disconnected`,
+    });
+  };
 
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return bytes + ' B';
@@ -417,31 +489,159 @@ function DocumentsTab({ chatbotId }: { chatbotId: string }) {
         <CardContent className="space-y-6">
           {/* Cloud Storage Section */}
           <div>
-            <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center">
-              <i className="fas fa-cloud text-blue-500 mr-2"></i>
-              Cloud Storage
+            <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center justify-between">
+              <span className="flex items-center">
+                <i className="fas fa-cloud text-blue-500 mr-2"></i>
+                Cloud Storage
+              </span>
+              <span className="text-xs text-slate-500">
+                {Object.values(cloudConnections).filter(Boolean).length} connected
+              </span>
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-              <button className="flex flex-col items-center justify-center p-4 border-2 border-slate-200 rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
-                <i className="fab fa-google-drive text-3xl text-green-500 mb-2 group-hover:scale-110 transition-transform"></i>
-                <span className="text-xs font-medium text-slate-700">Google Drive</span>
-              </button>
-              <button className="flex flex-col items-center justify-center p-4 border-2 border-slate-200 rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
-                <i className="fab fa-microsoft text-3xl text-blue-500 mb-2 group-hover:scale-110 transition-transform"></i>
-                <span className="text-xs font-medium text-slate-700">OneDrive</span>
-              </button>
-              <button className="flex flex-col items-center justify-center p-4 border-2 border-slate-200 rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
-                <i className="fab fa-microsoft text-3xl text-indigo-600 mb-2 group-hover:scale-110 transition-transform"></i>
-                <span className="text-xs font-medium text-slate-700">SharePoint</span>
-              </button>
-              <button className="flex flex-col items-center justify-center p-4 border-2 border-slate-200 rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
-                <i className="fab fa-dropbox text-3xl text-blue-600 mb-2 group-hover:scale-110 transition-transform"></i>
-                <span className="text-xs font-medium text-slate-700">Dropbox</span>
-              </button>
-              <button className="flex flex-col items-center justify-center p-4 border-2 border-slate-200 rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
-                <i className="fas fa-box text-3xl text-blue-700 mb-2 group-hover:scale-110 transition-transform"></i>
-                <span className="text-xs font-medium text-slate-700">Box</span>
-              </button>
+              {/* Google Drive */}
+              <div className="relative group">
+                <button 
+                  onClick={() => handleCloudStorageBrowse('google_drive')}
+                  className={`w-full flex flex-col items-center justify-center p-4 border-2 rounded-lg transition-all ${
+                    cloudConnections.google_drive 
+                      ? 'border-green-500 bg-green-50 dark:bg-green-900/20' 
+                      : 'border-slate-200 dark:border-slate-700 hover:border-primary hover:bg-primary/5'
+                  }`}
+                >
+                  <i className="fab fa-google-drive text-3xl text-green-500 mb-2 group-hover:scale-110 transition-transform"></i>
+                  <span className="text-xs font-medium text-slate-700 dark:text-slate-300">Google Drive</span>
+                  {cloudConnections.google_drive && (
+                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                      <i className="fas fa-check text-white text-[10px]"></i>
+                    </div>
+                  )}
+                </button>
+                {cloudConnections.google_drive && (
+                  <button
+                    onClick={() => handleDisconnect('google_drive')}
+                    className="absolute -bottom-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                    title="Disconnect"
+                  >
+                    <i className="fas fa-times"></i>
+                  </button>
+                )}
+              </div>
+
+              {/* OneDrive */}
+              <div className="relative group">
+                <button 
+                  onClick={() => handleCloudStorageBrowse('onedrive')}
+                  className={`w-full flex flex-col items-center justify-center p-4 border-2 rounded-lg transition-all ${
+                    cloudConnections.onedrive 
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+                      : 'border-slate-200 dark:border-slate-700 hover:border-primary hover:bg-primary/5'
+                  }`}
+                >
+                  <i className="fab fa-microsoft text-3xl text-blue-500 mb-2 group-hover:scale-110 transition-transform"></i>
+                  <span className="text-xs font-medium text-slate-700 dark:text-slate-300">OneDrive</span>
+                  {cloudConnections.onedrive && (
+                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                      <i className="fas fa-check text-white text-[10px]"></i>
+                    </div>
+                  )}
+                </button>
+                {cloudConnections.onedrive && (
+                  <button
+                    onClick={() => handleDisconnect('onedrive')}
+                    className="absolute -bottom-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                    title="Disconnect"
+                  >
+                    <i className="fas fa-times"></i>
+                  </button>
+                )}
+              </div>
+
+              {/* SharePoint */}
+              <div className="relative group">
+                <button 
+                  onClick={() => handleCloudStorageBrowse('sharepoint')}
+                  className={`w-full flex flex-col items-center justify-center p-4 border-2 rounded-lg transition-all ${
+                    cloudConnections.sharepoint 
+                      ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20' 
+                      : 'border-slate-200 dark:border-slate-700 hover:border-primary hover:bg-primary/5'
+                  }`}
+                >
+                  <i className="fab fa-microsoft text-3xl text-indigo-600 mb-2 group-hover:scale-110 transition-transform"></i>
+                  <span className="text-xs font-medium text-slate-700 dark:text-slate-300">SharePoint</span>
+                  {cloudConnections.sharepoint && (
+                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-indigo-600 rounded-full flex items-center justify-center">
+                      <i className="fas fa-check text-white text-[10px]"></i>
+                    </div>
+                  )}
+                </button>
+                {cloudConnections.sharepoint && (
+                  <button
+                    onClick={() => handleDisconnect('sharepoint')}
+                    className="absolute -bottom-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                    title="Disconnect"
+                  >
+                    <i className="fas fa-times"></i>
+                  </button>
+                )}
+              </div>
+
+              {/* Dropbox */}
+              <div className="relative group">
+                <button 
+                  onClick={() => handleCloudStorageBrowse('dropbox')}
+                  className={`w-full flex flex-col items-center justify-center p-4 border-2 rounded-lg transition-all ${
+                    cloudConnections.dropbox 
+                      ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20' 
+                      : 'border-slate-200 dark:border-slate-700 hover:border-primary hover:bg-primary/5'
+                  }`}
+                >
+                  <i className="fab fa-dropbox text-3xl text-blue-600 mb-2 group-hover:scale-110 transition-transform"></i>
+                  <span className="text-xs font-medium text-slate-700 dark:text-slate-300">Dropbox</span>
+                  {cloudConnections.dropbox && (
+                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center">
+                      <i className="fas fa-check text-white text-[10px]"></i>
+                    </div>
+                  )}
+                </button>
+                {cloudConnections.dropbox && (
+                  <button
+                    onClick={() => handleDisconnect('dropbox')}
+                    className="absolute -bottom-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                    title="Disconnect"
+                  >
+                    <i className="fas fa-times"></i>
+                  </button>
+                )}
+              </div>
+              {/* Box */}
+              <div className="relative group">
+                <button 
+                  onClick={() => handleCloudStorageBrowse('box')}
+                  className={`w-full flex flex-col items-center justify-center p-4 border-2 rounded-lg transition-all ${
+                    cloudConnections.box 
+                      ? 'border-blue-700 bg-blue-50 dark:bg-blue-900/20' 
+                      : 'border-slate-200 dark:border-slate-700 hover:border-primary hover:bg-primary/5'
+                  }`}
+                >
+                  <i className="fas fa-cube text-3xl text-blue-700 mb-2 group-hover:scale-110 transition-transform"></i>
+                  <span className="text-xs font-medium text-slate-700 dark:text-slate-300">Box</span>
+                  {cloudConnections.box && (
+                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-700 rounded-full flex items-center justify-center">
+                      <i className="fas fa-check text-white text-[10px]"></i>
+                    </div>
+                  )}
+                </button>
+                {cloudConnections.box && (
+                  <button
+                    onClick={() => handleDisconnect('box')}
+                    className="absolute -bottom-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                    title="Disconnect"
+                  >
+                    <i className="fas fa-times"></i>
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -571,7 +771,31 @@ function DocumentsTab({ chatbotId }: { chatbotId: string }) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Uploaded Documents</CardTitle>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Uploaded Documents</CardTitle>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                Current session uploads • {uploadedFiles.length} document{uploadedFiles.length !== 1 ? 's' : ''}
+              </p>
+            </div>
+            {uploadedFiles.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setUploadedFiles([]);
+                  toast({
+                    title: "All Documents Cleared",
+                    description: "Upload list has been cleared for this session",
+                  });
+                }}
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                <i className="fas fa-trash mr-2"></i>
+                Clear All
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
@@ -612,14 +836,10 @@ function DocumentsTab({ chatbotId }: { chatbotId: string }) {
                       <button 
                         className="text-slate-400 hover:text-red-600 transition-colors"
                         onClick={() => {
-                          const newFiles = uploadedFiles.filter((_, i) => i !== index);
-                          setUploadedFiles(newFiles);
-                          if (newFiles.length === 0) {
-                            localStorage.removeItem(`uploadedFiles_${chatbotId}`);
-                          }
+                          setUploadedFiles(prev => prev.filter((_, i) => i !== index));
                           toast({
-                            title: "Document removed",
-                            description: "Document removed from the list",
+                            title: "Document Removed",
+                            description: "Document removed from current session list",
                           });
                         }}
                         title="Remove from list"
@@ -640,8 +860,125 @@ function DocumentsTab({ chatbotId }: { chatbotId: string }) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Cloud File Picker Dialog */}
+      <Dialog open={showCloudPicker} onOpenChange={setShowCloudPicker}>
+        <DialogContent className="max-w-4xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <i className={`${getProviderIcon(selectedProvider)} text-2xl`}></i>
+              <span>Browse {getProviderName(selectedProvider)} Files</span>
+            </DialogTitle>
+            <DialogDescription>
+              Select files to import into your AI agent's knowledge base
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {/* Breadcrumb Navigation */}
+            <div className="flex items-center space-x-2 text-sm text-slate-600 dark:text-slate-400">
+              <i className="fas fa-folder"></i>
+              <span>/</span>
+              <span className="font-medium">Root</span>
+            </div>
+
+            {/* File List */}
+            <ScrollArea className="h-[400px] border rounded-lg">
+              <div className="p-4 space-y-2">
+                {/* Demo files - Replace with actual API call */}
+                {[
+                  { name: 'Product Documentation.pdf', size: '2.4 MB', type: 'pdf', modified: '2 days ago' },
+                  { name: 'Sales Report Q4.docx', size: '1.1 MB', type: 'doc', modified: '5 days ago' },
+                  { name: 'Customer Data.xlsx', size: '856 KB', type: 'xls', modified: '1 week ago' },
+                  { name: 'Marketing Presentation.pptx', size: '4.2 MB', type: 'ppt', modified: '2 weeks ago' },
+                  { name: 'Meeting Notes.txt', size: '24 KB', type: 'txt', modified: '3 days ago' },
+                ].map((file, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between p-3 border rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <input type="checkbox" className="w-4 h-4" />
+                      <div className="w-10 h-10 bg-slate-100 dark:bg-slate-700 rounded flex items-center justify-center">
+                        <i className={`${getFileIcon(file.type)} text-xl`}></i>
+                      </div>
+                      <div>
+                        <p className="font-medium text-slate-900 dark:text-white">{file.name}</p>
+                        <p className="text-xs text-slate-500">{file.size} • {file.modified}</p>
+                      </div>
+                    </div>
+                    <Button variant="ghost" size="sm">
+                      <i className="fas fa-external-link-alt"></i>
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+
+            {/* Action Buttons */}
+            <div className="flex justify-between items-center pt-4 border-t">
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                <i className="fas fa-info-circle mr-1"></i>
+                Select files to import (Max 10 files at once)
+              </p>
+              <div className="flex space-x-2">
+                <Button variant="outline" onClick={() => setShowCloudPicker(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => {
+                    toast({
+                      title: "Importing Files",
+                      description: "Your selected files are being imported...",
+                    });
+                    setShowCloudPicker(false);
+                    // TODO: Implement actual file import
+                  }}
+                >
+                  <i className="fas fa-download mr-2"></i>
+                  Import Selected
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
+  
+  // Helper functions for cloud picker
+  function getProviderName(provider: string) {
+    const names: Record<string, string> = {
+      google_drive: 'Google Drive',
+      onedrive: 'OneDrive',
+      sharepoint: 'SharePoint',
+      dropbox: 'Dropbox',
+      box: 'Box'
+    };
+    return names[provider] || provider;
+  }
+
+  function getProviderIcon(provider: string) {
+    const icons: Record<string, string> = {
+      google_drive: 'fab fa-google-drive text-green-500',
+      onedrive: 'fab fa-microsoft text-blue-500',
+      sharepoint: 'fab fa-microsoft text-indigo-600',
+      dropbox: 'fab fa-dropbox text-blue-600',
+      box: 'fas fa-cube text-blue-700'
+    };
+    return icons[provider] || 'fas fa-cloud';
+  }
+
+  function getFileIcon(type: string) {
+    const icons: Record<string, string> = {
+      pdf: 'fas fa-file-pdf text-red-500',
+      doc: 'fas fa-file-word text-blue-600',
+      xls: 'fas fa-file-excel text-green-600',
+      ppt: 'fas fa-file-powerpoint text-orange-600',
+      txt: 'fas fa-file-alt text-slate-500'
+    };
+    return icons[type] || 'fas fa-file';
+  }
 }
 
 function ChatInterfaceTab({ chatbot }: { chatbot: Chatbot }) {
@@ -1472,175 +1809,569 @@ function AnalyticsTab({ chatbotId }: { chatbotId: string }) {
 }
 
 function EmbedExportTab({ chatbot }: { chatbot: Chatbot }) {
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState('');
+  const [embedType, setEmbedType] = useState<'iframe' | 'script' | 'popup'>('popup');
+  const [widgetSize, setWidgetSize] = useState({ width: '400', height: '600' });
+  const [showPreview, setShowPreview] = useState(false);
+  const { toast } = useToast();
   
-  const iframeCode = `<iframe
-  src="https://chatbot-widget.example.com/embed/${chatbot.id}"
-  width="400"
-  height="600"
+  const baseUrl = window.location.origin;
+  const apiUrl = 'http://192.168.1.31:8006'; // Updated to match your backend from api-config.ts
+  
+  // Popup Widget (Recommended)
+  const popupWidgetCode = `<!-- Vyoma AI Chat Widget -->
+<script
+  src="${baseUrl}/widget.js"
+  data-chatbot-id="${chatbot.id}"
+  data-api-url="${apiUrl}"
+  data-position="${chatbot.widgetPosition || 'bottom-right'}"
+  data-color="${chatbot.brandColor || '#6366f1'}"
+  data-button-text="Chat with us"
+  async
+></script>`;
+
+  // Direct Iframe Code  
+  const iframeCode = `<!-- Vyoma AI Chat Widget (Iframe) -->
+<iframe
+  src="${baseUrl}/widget.html?id=${chatbot.id}&api=${apiUrl}"
+  width="${widgetSize.width}"
+  height="${widgetSize.height}"
   frameborder="0"
-  style="position: fixed; ${chatbot.widgetPosition?.includes('bottom') ? 'bottom: 20px' : 'top: 20px'}; ${chatbot.widgetPosition?.includes('right') ? 'right: 20px' : 'left: 20px'}; z-index: 1000;"
+  allow="microphone"
+  style="position: fixed; ${chatbot.widgetPosition?.includes('bottom') ? 'bottom' : 'top'}: 20px; ${chatbot.widgetPosition?.includes('right') ? 'right' : 'left'}: 20px; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); z-index: 9999;"
 ></iframe>`;
 
-  const jsCode = `<script>
-  (function() {
-    var chatbot = document.createElement('div');
-    chatbot.id = 'chatbot-widget-${chatbot.id}';
-    chatbot.innerHTML = '<iframe src="https://chatbot-widget.example.com/embed/${chatbot.id}" width="400" height="600" frameborder="0"></iframe>';
-    chatbot.style.cssText = 'position: fixed; ${chatbot.widgetPosition?.includes('bottom') ? 'bottom: 20px' : 'top: 20px'}; ${chatbot.widgetPosition?.includes('right') ? 'right: 20px' : 'left: 20px'}; z-index: 1000;';
-    document.body.appendChild(chatbot);
-  })();
+  // JavaScript Snippet
+  const jsCode = `<!-- Vyoma AI Chat Widget (Custom JS) -->
+<script>
+(function() {
+  var iframe = document.createElement('iframe');
+  iframe.src = '${baseUrl}/widget.html?id=${chatbot.id}&api=${apiUrl}';
+  iframe.style.cssText = 'position: fixed; ${chatbot.widgetPosition?.includes('bottom') ? 'bottom' : 'top'}: 20px; ${chatbot.widgetPosition?.includes('right') ? 'right' : 'left'}: 20px; width: ${widgetSize.width}px; height: ${widgetSize.height}px; border: none; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); z-index: 9999;';
+  iframe.setAttribute('allow', 'microphone');
+  document.body.appendChild(iframe);
+})();
 </script>`;
 
-  const copyToClipboard = (text: string) => {
+  const copyToClipboard = (text: string, type: string) => {
     navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setCopied(type);
+    toast({
+      title: "Copied to clipboard!",
+      description: "Paste this code into your website's HTML.",
+    });
+    setTimeout(() => setCopied(''), 3000);
+  };
+
+  const openPreview = () => {
+    window.open(`${baseUrl}/widget.html?id=${chatbot.id}&api=${apiUrl}`, 'Widget Preview', 'width=400,height=700');
   };
 
   return (
     <div className="space-y-6">
+      {/* Quick Actions */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Embed & Share</h2>
+          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+            Add your AI agent to any website in minutes
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <Button variant="outline" onClick={openPreview}>
+            <i className="fas fa-external-link-alt mr-2"></i>
+            Test Widget
+          </Button>
+          <Button onClick={() => {
+            const code = embedType === 'popup' ? popupWidgetCode : embedType === 'iframe' ? iframeCode : jsCode;
+            copyToClipboard(code, embedType);
+          }}>
+            <i className="fas fa-download mr-2"></i>
+            Get Code
+          </Button>
+        </div>
+      </div>
+
+      {/* Embed Options */}
       <Card>
         <CardHeader>
-          <CardTitle>Embed Your Chatbot</CardTitle>
-          <p className="text-sm text-slate-600">
-            Copy and paste these codes to add your chatbot to any website
+          <CardTitle>Choose Your Integration Method</CardTitle>
+          <p className="text-sm text-slate-600 dark:text-slate-400">
+            Select how you want to add the chatbot to your website
           </p>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <Label className="text-sm font-medium">HTML Iframe Code</Label>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => copyToClipboard(iframeCode)}
-              >
-                {copied ? (
-                  <>
-                    <i className="fas fa-check mr-2 text-green-600"></i>
-                    Copied!
-                  </>
-                ) : (
-                  <>
-                    <i className="fas fa-copy mr-2"></i>
-                    Copy
-                  </>
-                )}
-              </Button>
-            </div>
-            <div className="bg-slate-900 text-green-400 p-4 rounded-lg font-mono text-sm overflow-x-auto">
-              <pre>{iframeCode}</pre>
-            </div>
-          </div>
+        <CardContent>
+          <Tabs value={embedType} onValueChange={(v) => setEmbedType(v as any)} className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="popup" className="flex items-center gap-2">
+                <i className="fas fa-comments"></i>
+                <span>Popup Widget</span>
+                <Badge className="ml-1 bg-green-100 text-green-800 text-[10px] px-1.5 py-0">Recommended</Badge>
+              </TabsTrigger>
+              <TabsTrigger value="iframe" className="flex items-center gap-2">
+                <i className="fas fa-window-maximize"></i>
+                <span>Iframe Embed</span>
+              </TabsTrigger>
+              <TabsTrigger value="script" className="flex items-center gap-2">
+                <i className="fas fa-code"></i>
+                <span>Custom Script</span>
+              </TabsTrigger>
+            </TabsList>
 
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <Label className="text-sm font-medium">JavaScript Code</Label>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => copyToClipboard(jsCode)}
-              >
-                <i className="fas fa-copy mr-2"></i>
-                Copy
-              </Button>
-            </div>
-            <div className="bg-slate-900 text-green-400 p-4 rounded-lg font-mono text-sm overflow-x-auto">
-              <pre>{jsCode}</pre>
-            </div>
-          </div>
+            {/* Popup Widget */}
+            <TabsContent value="popup" className="space-y-4 mt-6">
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i className="fas fa-star text-blue-600 dark:text-blue-400"></i>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">Best Choice</h4>
+                    <p className="text-sm text-blue-700 dark:text-blue-300">
+                      A floating chat button appears in the corner. Visitors can click to open/close the chat. Perfect for all websites.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between items-center mb-3">
+                  <Label className="text-sm font-semibold">Installation Code</Label>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => copyToClipboard(popupWidgetCode, 'popup')}
+                  >
+                    {copied === 'popup' ? (
+                      <>
+                        <i className="fas fa-check mr-2 text-green-600"></i>
+                        Copied!
+                      </>
+                    ) : (
+                      <>
+                        <i className="fas fa-copy mr-2"></i>
+                        Copy Code
+                      </>
+                    )}
+                  </Button>
+                </div>
+                <div className="bg-slate-900 dark:bg-slate-950 text-green-400 p-4 rounded-lg font-mono text-xs overflow-x-auto border border-slate-700">
+                  <pre>{popupWidgetCode}</pre>
+                </div>
+                <div className="mt-3 flex items-start gap-2 text-sm text-slate-600 dark:text-slate-400">
+                  <i className="fas fa-info-circle mt-0.5"></i>
+                  <p>Paste this code before the closing <code className="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-xs">&lt;/body&gt;</code> tag in your HTML</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
+                <div className="space-y-2">
+                  <Label className="text-sm">Features</Label>
+                  <ul className="space-y-1.5 text-sm text-slate-600 dark:text-slate-400">
+                    <li className="flex items-center gap-2">
+                      <i className="fas fa-check-circle text-green-500"></i>
+                      Floating chat button
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <i className="fas fa-check-circle text-green-500"></i>
+                      Open/close animation
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <i className="fas fa-check-circle text-green-500"></i>
+                      Mobile responsive
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <i className="fas fa-check-circle text-green-500"></i>
+                      Customizable position & color
+                    </li>
+                  </ul>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm">Compatible With</Label>
+                  <ul className="space-y-1.5 text-sm text-slate-600 dark:text-slate-400">
+                    <li className="flex items-center gap-2">
+                      <i className="fab fa-wordpress text-blue-600"></i>
+                      WordPress
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <i className="fab fa-shopify text-green-600"></i>
+                      Shopify
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <i className="fab fa-wix text-slate-700"></i>
+                      Wix, Squarespace
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <i className="fas fa-code text-purple-600"></i>
+                      Any HTML website
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* Iframe Embed */}
+            <TabsContent value="iframe" className="space-y-4 mt-6">
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-amber-100 dark:bg-amber-900 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i className="fas fa-info-circle text-amber-600 dark:text-amber-400"></i>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-amber-900 dark:text-amber-100 mb-1">Fixed Position</h4>
+                    <p className="text-sm text-amber-700 dark:text-amber-300">
+                      Chat window is always visible in a fixed position. Good for dedicated support pages or dashboards.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm">Width (px)</Label>
+                  <Input
+                    type="number"
+                    value={widgetSize.width}
+                    onChange={(e) => setWidgetSize({ ...widgetSize, width: e.target.value })}
+                    className="mt-1.5"
+                  />
+                </div>
+                <div>
+                  <Label className="text-sm">Height (px)</Label>
+                  <Input
+                    type="number"
+                    value={widgetSize.height}
+                    onChange={(e) => setWidgetSize({ ...widgetSize, height: e.target.value })}
+                    className="mt-1.5"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between items-center mb-3">
+                  <Label className="text-sm font-semibold">Iframe Code</Label>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => copyToClipboard(iframeCode, 'iframe')}
+                  >
+                    {copied === 'iframe' ? (
+                      <>
+                        <i className="fas fa-check mr-2 text-green-600"></i>
+                        Copied!
+                      </>
+                    ) : (
+                      <>
+                        <i className="fas fa-copy mr-2"></i>
+                        Copy Code
+                      </>
+                    )}
+                  </Button>
+                </div>
+                <div className="bg-slate-900 dark:bg-slate-950 text-green-400 p-4 rounded-lg font-mono text-xs overflow-x-auto border border-slate-700">
+                  <pre>{iframeCode}</pre>
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* Custom Script */}
+            <TabsContent value="script" className="space-y-4 mt-6">
+              <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i className="fas fa-code text-purple-600 dark:text-purple-400"></i>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-purple-900 dark:text-purple-100 mb-1">For Developers</h4>
+                    <p className="text-sm text-purple-700 dark:text-purple-300">
+                      Programmatically add the chat widget. Full control over loading and initialization.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between items-center mb-3">
+                  <Label className="text-sm font-semibold">JavaScript Snippet</Label>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => copyToClipboard(jsCode, 'script')}
+                  >
+                    {copied === 'script' ? (
+                      <>
+                        <i className="fas fa-check mr-2 text-green-600"></i>
+                        Copied!
+                      </>
+                    ) : (
+                      <>
+                        <i className="fas fa-copy mr-2"></i>
+                        Copy Code
+                      </>
+                    )}
+                  </Button>
+                </div>
+                <div className="bg-slate-900 dark:bg-slate-950 text-green-400 p-4 rounded-lg font-mono text-xs overflow-x-auto border border-slate-700">
+                  <pre>{jsCode}</pre>
+                </div>
+              </div>
+
+              <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 space-y-3">
+                <h4 className="font-semibold text-sm">Programmatic Control</h4>
+                <p className="text-sm text-slate-600 dark:text-slate-400">
+                  When using the popup widget, you can control it programmatically:
+                </p>
+                <div className="bg-slate-900 dark:bg-slate-950 text-green-400 p-3 rounded font-mono text-xs overflow-x-auto border border-slate-700">
+                  <pre>{`// Open the widget
+window.VyomaWidget.open();
+
+// Close the widget
+window.VyomaWidget.close();
+
+// Toggle the widget
+window.VyomaWidget.toggle();
+
+// Check if widget is open
+window.VyomaWidget.isOpen();`}</pre>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
 
+      {/* Quick Start Guide & Settings */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Widget Customization</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <i className="fas fa-rocket text-blue-500"></i>
+              Quick Start Guide
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <Label>Widget Position</Label>
-              <select className="w-full mt-1 p-2 border rounded-md">
-                <option value="bottom-right">Bottom Right</option>
-                <option value="bottom-left">Bottom Left</option>
-                <option value="top-right">Top Right</option>
-                <option value="top-left">Top Left</option>
-              </select>
-            </div>
-            <div>
-              <Label>Widget Size</Label>
-              <div className="grid grid-cols-2 gap-2 mt-1">
-                <Input placeholder="Width" defaultValue="400" />
-                <Input placeholder="Height" defaultValue="600" />
+            <div className="space-y-3">
+              <div className="flex gap-3">
+                <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-sm font-bold text-blue-600 dark:text-blue-400">1</span>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-sm mb-1">Copy the embed code</h4>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    Choose your integration method above and click "Copy Code"
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-sm font-bold text-blue-600 dark:text-blue-400">2</span>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-sm mb-1">Paste into your website</h4>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    Add the code before the <code className="bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded text-xs">&lt;/body&gt;</code> tag in your HTML
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-sm font-bold text-blue-600 dark:text-blue-400">3</span>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-sm mb-1">Test it out</h4>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    Visit your website and see your AI agent in action!
+                  </p>
+                </div>
               </div>
             </div>
-            <div>
-              <Label>Border Radius</Label>
-              <Input placeholder="8" defaultValue="8" className="mt-1" />
+
+            <Separator />
+
+            <div className="space-y-3">
+              <h4 className="font-semibold text-sm">Current Settings</h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-slate-600 dark:text-slate-400">Position:</span>
+                  <span className="font-medium">{chatbot.widgetPosition || 'bottom-right'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-600 dark:text-slate-400">Brand Color:</span>
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-4 h-4 rounded border border-slate-300" 
+                      style={{ background: chatbot.brandColor || '#6366f1' }}
+                    ></div>
+                    <span className="font-medium">{chatbot.brandColor || '#6366f1'}</span>
+                  </div>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-600 dark:text-slate-400">Status:</span>
+                  <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                    <i className="fas fa-circle text-[8px] mr-1"></i>
+                    Active
+                  </Badge>
+                </div>
+              </div>
+              <Button variant="outline" className="w-full" asChild>
+                <Link href={`/chatbot/${chatbot.id}?tab=chat`}>
+                  <i className="fas fa-cog mr-2"></i>
+                  Customize Appearance
+                </Link>
+              </Button>
             </div>
-            <Button className="w-full">
-              Update Widget
-            </Button>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Integration Options</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <i className="fas fa-plug text-purple-500"></i>
+              Platform Integrations
+            </CardTitle>
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              One-click installations for popular platforms
+            </p>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-3">
-              <Button variant="outline" className="w-full justify-start">
-                <i className="fab fa-wordpress mr-3 text-blue-600"></i>
-                WordPress Plugin
-              </Button>
-              <Button variant="outline" className="w-full justify-start">
-                <i className="fab fa-shopify mr-3 text-green-600"></i>
-                Shopify App
-              </Button>
-              <Button variant="outline" className="w-full justify-start">
-                <i className="fab fa-react mr-3 text-blue-400"></i>
-                React Component
-              </Button>
-              <Button variant="outline" className="w-full justify-start">
-                <i className="fas fa-code mr-3 text-purple-600"></i>
-                REST API
-              </Button>
+          <CardContent className="space-y-3">
+            <Button variant="outline" className="w-full justify-between">
+              <div className="flex items-center">
+                <i className="fab fa-wordpress mr-3 text-blue-600 text-xl"></i>
+                <div className="text-left">
+                  <div className="font-semibold">WordPress</div>
+                  <div className="text-xs text-slate-500">Install via plugin</div>
+                </div>
+              </div>
+              <Badge variant="secondary" className="text-xs">Coming Soon</Badge>
+            </Button>
+            <Button variant="outline" className="w-full justify-between">
+              <div className="flex items-center">
+                <i className="fab fa-shopify mr-3 text-green-600 text-xl"></i>
+                <div className="text-left">
+                  <div className="font-semibold">Shopify</div>
+                  <div className="text-xs text-slate-500">Add to your store</div>
+                </div>
+              </div>
+              <Badge variant="secondary" className="text-xs">Coming Soon</Badge>
+            </Button>
+            <Button variant="outline" className="w-full justify-between">
+              <div className="flex items-center">
+                <i className="fab fa-wix mr-3 text-slate-700 text-xl"></i>
+                <div className="text-left">
+                  <div className="font-semibold">Wix & Squarespace</div>
+                  <div className="text-xs text-slate-500">Embed widget</div>
+                </div>
+              </div>
+              <i className="fas fa-external-link-alt text-slate-400"></i>
+            </Button>
+            <Button variant="outline" className="w-full justify-between">
+              <div className="flex items-center">
+                <i className="fab fa-react mr-3 text-blue-400 text-xl"></i>
+                <div className="text-left">
+                  <div className="font-semibold">React/Next.js</div>
+                  <div className="text-xs text-slate-500">Component library</div>
+                </div>
+              </div>
+              <Badge variant="secondary" className="text-xs">Coming Soon</Badge>
+            </Button>
+
+            <Separator className="my-4" />
+
+            <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <i className="fas fa-book text-blue-500 text-lg"></i>
+                <div>
+                  <h4 className="font-semibold text-sm mb-1">Need Help?</h4>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 mb-2">
+                    Check our documentation for detailed integration guides
+                  </p>
+                  <Button variant="link" className="h-auto p-0 text-xs" asChild>
+                    <Link href="/documentation">
+                      View Documentation <i className="fas fa-arrow-right ml-1"></i>
+                    </Link>
+                  </Button>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
+      {/* Domain Security */}
       <Card>
         <CardHeader>
-          <CardTitle>Domain Settings</CardTitle>
-          <p className="text-sm text-slate-600">
-            Manage which domains can embed your chatbot
+          <CardTitle className="flex items-center gap-2">
+            <i className="fas fa-shield-alt text-green-500"></i>
+            Security & Domain Settings
+          </CardTitle>
+          <p className="text-sm text-slate-600 dark:text-slate-400">
+            Control which domains can embed your AI agent for enhanced security
           </p>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <div>
-              <Label>Allowed Domains</Label>
+              <Label className="text-sm font-semibold">Allowed Domains</Label>
               <Textarea
                 placeholder="example.com&#10;app.example.com&#10;*.mydomain.com"
-                className="mt-1 font-mono text-sm"
+                defaultValue={chatbot.name ? `${chatbot.name.toLowerCase().replace(/\s+/g, '')}.com` : ''}
+                className="mt-2 font-mono text-sm dark:bg-slate-800"
                 rows={4}
               />
-              <p className="text-xs text-slate-500 mt-1">
-                Enter one domain per line. Use * for wildcards.
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 flex items-start gap-2">
+                <i className="fas fa-info-circle mt-0.5"></i>
+                <span>Enter one domain per line. Use * for wildcards. Leave empty to allow all domains.</span>
               </p>
             </div>
-            <div className="flex items-center space-x-2">
-              <input type="checkbox" id="allowAll" className="rounded" />
-              <Label htmlFor="allowAll" className="text-sm">
-                Allow embedding on any domain (not recommended for production)
-              </Label>
+            
+            <div className="flex items-start space-x-3 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+              <i className="fas fa-exclamation-triangle text-amber-600 dark:text-amber-400 mt-0.5"></i>
+              <div className="flex-1">
+                <input type="checkbox" id="allowAll" className="rounded mr-2" />
+                <Label htmlFor="allowAll" className="text-sm font-medium text-amber-900 dark:text-amber-100">
+                  Allow embedding on any domain
+                </Label>
+                <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
+                  Not recommended for production. Anyone can embed your chatbot on their website.
+                </p>
+              </div>
             </div>
-            <Button>
-              Save Domain Settings
-            </Button>
+
+            <div className="flex gap-3 pt-2">
+              <Button className="flex-1">
+                <i className="fas fa-save mr-2"></i>
+                Save Domain Settings
+              </Button>
+              <Button variant="outline">
+                <i className="fas fa-undo mr-2"></i>
+                Reset
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Analytics Notice */}
+      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-blue-200 dark:border-blue-800">
+        <CardContent className="p-6">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center flex-shrink-0">
+              <i className="fas fa-chart-line text-blue-600 dark:text-blue-400 text-xl"></i>
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-lg mb-2">Track Your Widget Performance</h3>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                Monitor conversations, response times, and user satisfaction in real-time. See detailed analytics in the Analytics tab.
+              </p>
+              <Button variant="default" asChild>
+                <Link href={`/chatbot/${chatbot.id}?tab=analytics`}>
+                  <i className="fas fa-chart-bar mr-2"></i>
+                  View Analytics
+                </Link>
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>

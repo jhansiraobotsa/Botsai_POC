@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vyoma AI Chatbot Widget</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .widget-container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .widget-header {
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .widget-avatar {
+      width: 45px;
+      height: 45px;
+      background: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .widget-avatar i {
+      color: #667eea;
+      font-size: 22px;
+    }
+
+    .widget-info {
+      flex: 1;
+      color: white;
+    }
+
+    .widget-info h3 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 3px;
+    }
+
+    .widget-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      opacity: 0.95;
+    }
+
+    .widget-controls {
+      display: flex;
+      gap: 8px;
+      margin-left: auto;
+    }
+
+    .widget-control-btn {
+      width: 32px;
+      height: 32px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      font-size: 14px;
+    }
+
+    .widget-control-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: scale(1.05);
+    }
+
+    .widget-control-btn:active {
+      transform: scale(0.95);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: #4ade80;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .widget-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.1) 100%);
+    }
+
+    .message {
+      margin-bottom: 16px;
+      display: flex;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .message-bot {
+      justify-content: flex-start;
+    }
+
+    .message-user {
+      justify-content: flex-end;
+    }
+
+    .message-bubble {
+      max-width: 75%;
+      padding: 12px 16px;
+      border-radius: 18px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      word-wrap: break-word;
+      line-height: 1.6;
+    }
+
+    .message-bot .message-bubble {
+      background: white;
+      color: #1e293b;
+      border-bottom-left-radius: 4px;
+    }
+
+    .message-user .message-bubble {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    /* Markdown styling in messages */
+    .message-bubble strong {
+      font-weight: 700;
+      color: inherit;
+    }
+
+    .message-bubble em {
+      font-style: italic;
+    }
+
+    .message-bubble ul, .message-bubble ol {
+      margin: 8px 0;
+      padding-left: 20px;
+    }
+
+    .message-bubble li {
+      margin: 4px 0;
+    }
+
+    .message-bubble p {
+      margin: 8px 0;
+    }
+
+    .message-bubble p:first-child {
+      margin-top: 0;
+    }
+
+    .message-bubble p:last-child {
+      margin-bottom: 0;
+    }
+
+    .message-bubble code {
+      background: rgba(0, 0, 0, 0.05);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+    }
+
+    .message-bot .message-bubble code {
+      background: #f1f5f9;
+      color: #0f172a;
+    }
+
+    .message-user .message-bubble code {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+    }
+
+    .message-bubble pre {
+      background: #1e293b;
+      color: #10b981;
+      padding: 12px;
+      border-radius: 6px;
+      overflow-x: auto;
+      margin: 8px 0;
+    }
+
+    .message-bubble pre code {
+      background: transparent;
+      padding: 0;
+      color: inherit;
+    }
+
+    .message-time {
+      font-size: 11px;
+      opacity: 0.7;
+      margin-top: 4px;
+      display: block;
+    }
+
+    .typing-indicator {
+      display: flex;
+      gap: 4px;
+      padding: 12px 16px;
+      background: white;
+      border-radius: 18px;
+      width: fit-content;
+      border-bottom-left-radius: 4px;
+    }
+
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      background: #94a3b8;
+      border-radius: 50%;
+      animation: typing 1.4s infinite;
+    }
+
+    .typing-dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes typing {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-10px); }
+    }
+
+    .widget-input-area {
+      padding: 16px 20px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .input-container {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .widget-input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 2px solid #e2e8f0;
+      border-radius: 24px;
+      font-size: 14px;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .widget-input:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .send-button {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      border-radius: 50%;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .send-button:hover {
+      transform: scale(1.05);
+    }
+
+    .send-button:active {
+      transform: scale(0.95);
+    }
+
+    .send-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .widget-footer {
+      padding: 8px 20px;
+      text-align: center;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.7);
+      background: rgba(0, 0, 0, 0.1);
+    }
+
+    .widget-footer a {
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .widget-footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* Scrollbar Styling */
+    .widget-messages::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .widget-messages::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .widget-messages::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 3px;
+    }
+
+    .widget-messages::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.5);
+    }
+
+    .quick-replies {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .quick-reply-btn {
+      padding: 8px 14px;
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 16px;
+      color: white;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      backdrop-filter: blur(5px);
+    }
+
+    .quick-reply-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+  <div class="widget-container" id="chatWidget">
+    <!-- Header -->
+    <div class="widget-header">
+      <div class="widget-avatar">
+        <i class="fas fa-robot"></i>
+      </div>
+      <div class="widget-info">
+        <h3 id="widgetTitle">Vyoma AI</h3>
+        <div class="widget-status">
+          <span class="status-dot"></span>
+          <span>Online • Ready to help</span>
+        </div>
+      </div>
+      <div class="widget-controls">
+        <button class="widget-control-btn" id="minimizeBtn" title="Minimize" onclick="minimizeWidget()">
+          <i class="fas fa-minus"></i>
+        </button>
+        <button class="widget-control-btn" id="closeBtn" title="Close" onclick="closeWidget()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Messages Area -->
+    <div class="widget-messages" id="messagesContainer">
+      <div class="message message-bot">
+        <div class="message-bubble">
+          <div>Hello! 👋 I'm your AI assistant. How can I help you today?</div>
+          <span class="message-time">Just now</span>
+        </div>
+      </div>
+      
+      <!-- Quick Replies -->
+      <div class="quick-replies" id="quickReplies">
+        <button class="quick-reply-btn" onclick="sendQuickReply('Tell me about your services')">
+          💼 Services
+        </button>
+        <button class="quick-reply-btn" onclick="sendQuickReply('How can I contact you?')">
+          📞 Contact
+        </button>
+        <button class="quick-reply-btn" onclick="sendQuickReply('Help me get started')">
+          🚀 Get Started
+        </button>
+      </div>
+    </div>
+
+    <!-- Input Area -->
+    <div class="widget-input-area">
+      <div class="input-container">
+        <input 
+          type="text" 
+          class="widget-input" 
+          id="messageInput" 
+          placeholder="Type your message..."
+          onkeypress="handleKeyPress(event)"
+        >
+        <button class="send-button" id="sendButton" onclick="sendMessage()">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="widget-footer">
+      Powered by <a href="https://vyomai.techraq.com/" target="_blank">Vyoma.ai</a>
+    </div>
+  </div>
+
+  <script>
+    // Get chatbot ID from URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const chatbotId = urlParams.get('id') || 'demo';
+    const apiUrl = urlParams.get('api') || 'http://192.168.1.31:8006'; // Updated to match your backend
+    
+    let sessionId = '';
+    const messagesContainer = document.getElementById('messagesContainer');
+    const messageInput = document.getElementById('messageInput');
+    const sendButton = document.getElementById('sendButton');
+
+    // Load chatbot configuration
+    async function loadChatbotConfig() {
+      try {
+        // Try to load config, but don't fail if it doesn't work
+        const response = await fetch(`${apiUrl}/api/v1/chatbot/${chatbotId}`);
+        if (response.ok) {
+          const data = await response.json();
+          
+          if (data.chatbot_name || data.name) {
+            document.getElementById('widgetTitle').textContent = data.chatbot_name || data.name;
+          }
+          
+          // Apply brand color if available
+          const color = data.user_steps_details?.brandColor || data.brand_color || data.brandColor;
+          if (color) {
+            document.querySelector('.widget-container').style.background = 
+              `linear-gradient(135deg, ${color} 0%, ${adjustColor(color, -20)} 100%)`;
+          }
+        }
+      } catch (error) {
+        console.warn('Could not load chatbot config, using defaults:', error);
+      }
+    }
+
+    // Utility function to adjust color brightness
+    function adjustColor(color, percent) {
+      const num = parseInt(color.replace("#",""), 16);
+      const amt = Math.round(2.55 * percent);
+      const R = (num >> 16) + amt;
+      const G = (num >> 8 & 0x00FF) + amt;
+      const B = (num & 0x0000FF) + amt;
+      return "#" + (0x1000000 + (R<255?R<1?0:R:255)*0x10000 +
+        (G<255?G<1?0:G:255)*0x100 + (B<255?B<1?0:B:255))
+        .toString(16).slice(1);
+    }
+
+    function addMessage(content, sender = 'bot') {
+      // Remove quick replies after first message
+      const quickReplies = document.getElementById('quickReplies');
+      if (quickReplies && sender === 'user') {
+        quickReplies.remove();
+      }
+
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message message-${sender}`;
+      
+      const time = new Date().toLocaleTimeString('en-US', { 
+        hour: 'numeric', 
+        minute: '2-digit' 
+      });
+      
+      // For bot messages, parse markdown-like formatting
+      let formattedContent = content;
+      if (sender === 'bot') {
+        // Convert **bold** to <strong>
+        formattedContent = formattedContent.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        // Convert *italic* to <em>
+        formattedContent = formattedContent.replace(/\*(.+?)\*/g, '<em>$1</em>');
+        // Convert `code` to <code>
+        formattedContent = formattedContent.replace(/`(.+?)`/g, '<code>$1</code>');
+        // Convert line breaks to <br>
+        formattedContent = formattedContent.replace(/\n/g, '<br>');
+        // Convert numbered lists (1. 2. 3.)
+        formattedContent = formattedContent.replace(/(\d+\.\s+.+?)(<br>|$)/g, '<li>$1</li>');
+        if (formattedContent.includes('<li>')) {
+          formattedContent = '<ol>' + formattedContent.replace(/(<li>.+?<\/li>)/g, '$1') + '</ol>';
+        }
+        // Convert bullet points (- or •)
+        formattedContent = formattedContent.replace(/[-•]\s+(.+?)(<br>|$)/g, '<li>$1</li>');
+        if (formattedContent.includes('<li>') && !formattedContent.includes('<ol>')) {
+          formattedContent = '<ul>' + formattedContent.replace(/(<li>.+?<\/li>)/g, '$1') + '</ul>';
+        }
+      }
+      
+      messageDiv.innerHTML = `
+        <div class="message-bubble">
+          <div>${formattedContent}</div>
+          <span class="message-time">${time}</span>
+        </div>
+      `;
+      
+      messagesContainer.appendChild(messageDiv);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    function showTypingIndicator() {
+      const typingDiv = document.createElement('div');
+      typingDiv.className = 'message message-bot';
+      typingDiv.id = 'typing-indicator';
+      typingDiv.innerHTML = `
+        <div class="typing-indicator">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      `;
+      messagesContainer.appendChild(typingDiv);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    function removeTypingIndicator() {
+      const typingIndicator = document.getElementById('typing-indicator');
+      if (typingIndicator) {
+        typingIndicator.remove();
+      }
+    }
+
+    async function sendMessage() {
+      const message = messageInput.value.trim();
+      if (!message) return;
+
+      // Add user message
+      addMessage(message, 'user');
+      messageInput.value = '';
+      sendButton.disabled = true;
+
+      // Show typing indicator
+      showTypingIndicator();
+
+      try {
+        console.log('Sending message to:', `${apiUrl}/api/v1/rag/chat`);
+        console.log('Payload:', { chatbot_id: chatbotId, query: message, session_id: sessionId });
+        
+        const response = await fetch(`${apiUrl}/api/v1/rag/chat`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'accept': 'application/json'
+          },
+          body: JSON.stringify({
+            chatbot_id: chatbotId,
+            query: message,
+            session_id: sessionId || ''
+          })
+        });
+
+        console.log('Response status:', response.status);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('API Error Response:', errorText);
+          
+          // Special handling for 401 authentication error
+          if (response.status === 401) {
+            throw new Error('Authentication required. Please check your backend configuration - the /rag/chat endpoint should allow public access for widgets.');
+          }
+          
+          throw new Error(`API returned ${response.status}: ${errorText}`);
+        }
+
+        const data = await response.json();
+        console.log('Response data:', data);
+        
+        // Update session ID if this is the first message
+        if (!sessionId && data.session_id) {
+          sessionId = data.session_id;
+          console.log('Session ID updated:', sessionId);
+        }
+
+        removeTypingIndicator();
+        
+        // Handle different response formats
+        const botResponse = data.answer || data.response || data.message || 'I received your message but couldn\'t generate a response.';
+        addMessage(botResponse, 'bot');
+      } catch (error) {
+        console.error('Error sending message:', error);
+        console.error('Error details:', {
+          message: error.message,
+          stack: error.stack,
+          apiUrl: apiUrl,
+          chatbotId: chatbotId
+        });
+        removeTypingIndicator();
+        
+        // Better error messages based on error type
+        let errorMessage = 'I\'m having trouble connecting to the server.';
+        
+        if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+          errorMessage = `
+            <strong>Connection Error</strong><br><br>
+            Cannot reach the server at:<br>
+            <code>${apiUrl}</code><br><br>
+            <strong>Possible causes:</strong><br>
+            • Backend server is not running<br>
+            • CORS is not enabled on backend<br>
+            • Wrong API URL<br>
+            • Network/firewall blocking connection<br><br>
+            <strong>To fix:</strong><br>
+            1. Make sure FastAPI is running<br>
+            2. Check API URL is correct<br>
+            3. Enable CORS in your backend
+          `;
+        } else if (error.message.includes('Authentication required')) {
+          errorMessage = `
+            <strong>Authentication Error</strong><br><br>
+            The chat endpoint requires authentication.<br><br>
+            <strong>To fix:</strong> Remove authentication from <code>/api/v1/rag/chat</code> endpoint in your FastAPI backend.
+          `;
+        } else {
+          errorMessage = `<strong>Error:</strong> ${error.message}`;
+        }
+        
+        addMessage(errorMessage, 'bot');
+      } finally {
+        sendButton.disabled = false;
+        messageInput.focus();
+      }
+    }
+
+    function sendQuickReply(message) {
+      messageInput.value = message;
+      sendMessage();
+    }
+
+    function handleKeyPress(event) {
+      if (event.key === 'Enter') {
+        sendMessage();
+      }
+    }
+
+    // Widget control functions
+    function minimizeWidget() {
+      // If embedded in iframe (via widget.js), send message to parent
+      if (window.parent !== window) {
+        window.parent.postMessage({ type: 'vyoma-minimize' }, '*');
+      } else {
+        // If standalone, show minimized button
+        showMinimizedButton();
+      }
+    }
+
+    function closeWidget() {
+      // If embedded in iframe (via widget.js), send message to parent
+      if (window.parent !== window) {
+        window.parent.postMessage({ type: 'vyoma-close' }, '*');
+      } else {
+        // If standalone, show minimized button
+        if (window.opener) {
+          window.close();
+        } else {
+          showMinimizedButton();
+        }
+      }
+    }
+
+    function showMinimizedButton() {
+      // Hide the main widget
+      document.getElementById('chatWidget').style.display = 'none';
+      
+      // Create or show minimized button
+      let minimizedBtn = document.getElementById('minimized-widget-btn');
+      if (!minimizedBtn) {
+        minimizedBtn = document.createElement('button');
+        minimizedBtn.id = 'minimized-widget-btn';
+        minimizedBtn.innerHTML = '<i class="fas fa-comments"></i>';
+        minimizedBtn.onclick = restoreWidget;
+        minimizedBtn.title = 'Open Chat';
+        
+        // Style the button
+        minimizedBtn.style.cssText = `
+          position: fixed;
+          bottom: 20px;
+          right: 20px;
+          width: 60px;
+          height: 60px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          border: none;
+          box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 24px;
+          z-index: 999999;
+          transition: transform 0.3s;
+          animation: pulse 2s infinite;
+        `;
+        
+        minimizedBtn.onmouseenter = function() {
+          this.style.transform = 'scale(1.1)';
+        };
+        
+        minimizedBtn.onmouseleave = function() {
+          this.style.transform = 'scale(1)';
+        };
+        
+        document.body.appendChild(minimizedBtn);
+      } else {
+        minimizedBtn.style.display = 'flex';
+      }
+    }
+
+    function restoreWidget() {
+      const widget = document.getElementById('chatWidget');
+      const minimizedBtn = document.getElementById('minimized-widget-btn');
+      
+      widget.style.display = 'flex';
+      if (minimizedBtn) {
+        minimizedBtn.style.display = 'none';
+      }
+    }
+
+    // Initialize
+    loadChatbotConfig();
+    messageInput.focus();
+    
+    // Log that widget is ready
+    console.log('Vyoma AI Widget initialized');
+    console.log('Chatbot ID:', chatbotId);
+    console.log('API URL:', apiUrl);
+  </script>
+</body>
+</html>
+
