@@ -478,11 +478,179 @@ function DocumentsTab({ chatbotId }: { chatbotId: string }) {
 
   return (
     <div className="space-y-6">
-      {/* Document Ingestion Sources */}
+      {/* Direct File Upload Section - First Priority */}
       <Card>
         <CardHeader>
+          <CardTitle>Upload Documents</CardTitle>
+          <p className="text-sm text-slate-600 dark:text-slate-400">
+            Upload files directly to build your chatbot's knowledge base
+          </p>
+        </CardHeader>
+        <CardContent>
+          <div className="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg p-8 text-center">
+            <div className="space-y-4">
+              <div className="mx-auto w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                <i className="fas fa-cloud-upload-alt text-primary text-xl"></i>
+              </div>
+              <div>
+                <h3 className="text-lg font-medium text-slate-900 dark:text-white">Upload Documents</h3>
+                <p className="text-sm text-slate-600 dark:text-slate-400">
+                  Drag and drop files here, or click to browse
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Supported formats: PDF, DOC, DOCX, TXT, PPTX, CSV, XLS, XLSX
+                </p>
+              </div>
+              <Button 
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                data-testid="button-upload-document"
+              >
+                {uploading ? (
+                  <>
+                    <i className="fas fa-spinner fa-spin mr-2"></i>
+                    Scanning...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-plus mr-2"></i>
+                    Choose Files
+                  </>
+                )}
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept=".pdf,.doc,.docx,.txt,.pptx,.csv,.xls,.xlsx"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+              {uploading && (
+                <div className="mt-6 text-left">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm text-slate-600 dark:text-slate-400">{statusText || 'Processing...'}</p>
+                    <span className="text-xs text-slate-500 dark:text-slate-400">{Math.round(progress)}%</span>
+                  </div>
+                  <Progress value={progress} />
+                  <div className="flex items-center gap-2 mt-3 text-slate-500 dark:text-slate-400 text-xs">
+                    <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span> 
+                    <span>Simulating scan steps while documents are being indexed...</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Uploaded Documents List */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Uploaded Documents</CardTitle>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                Current session uploads • {uploadedFiles.length} document{uploadedFiles.length !== 1 ? 's' : ''}
+              </p>
+            </div>
+            {uploadedFiles.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setUploadedFiles([]);
+                  toast({
+                    title: "All Documents Cleared",
+                    description: "Upload list has been cleared for this session",
+                  });
+                }}
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                <i className="fas fa-trash mr-2"></i>
+                Clear All
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {uploadedFiles.length > 0 ? (
+              uploadedFiles.map((file, index) => {
+                const uploadTime = new Date(file.timestamp);
+                const now = new Date();
+                const diffMinutes = Math.floor((now.getTime() - uploadTime.getTime()) / 60000);
+                const timeAgo = diffMinutes < 1 ? 'Just now' : 
+                               diffMinutes < 60 ? `${diffMinutes}m ago` : 
+                               diffMinutes < 1440 ? `${Math.floor(diffMinutes / 60)}h ago` : 
+                               `${Math.floor(diffMinutes / 1440)}d ago`;
+
+                return (
+                  <div key={index} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg hover:shadow-md transition-shadow">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900 dark:to-blue-800 rounded-lg flex items-center justify-center">
+                        <i className={`fas ${
+                          file.name.toLowerCase().endsWith('.pdf') ? 'fa-file-pdf text-red-600' : 
+                          file.name.toLowerCase().endsWith('.doc') || file.name.toLowerCase().endsWith('.docx') ? 'fa-file-word text-blue-600' :
+                          file.name.toLowerCase().endsWith('.xls') || file.name.toLowerCase().endsWith('.xlsx') ? 'fa-file-excel text-green-600' :
+                          file.name.toLowerCase().endsWith('.ppt') || file.name.toLowerCase().endsWith('.pptx') ? 'fa-file-powerpoint text-orange-600' :
+                          'fa-file-alt text-blue-600'
+                        } text-lg`}></i>
+                      </div>
+                      <div>
+                        <p className="font-medium text-slate-900 dark:text-white">{file.name}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          {timeAgo} • {file.size}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                        <i className="fas fa-check-circle mr-1"></i>
+                        Processed
+                      </Badge>
+                      <button 
+                        className="text-slate-400 hover:text-red-600 transition-colors"
+                        onClick={() => {
+                          setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+                          toast({
+                            title: "Document Removed",
+                            description: "Document removed from current session list",
+                          });
+                        }}
+                        title="Remove from list"
+                      >
+                        <i className="fas fa-times"></i>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+                <i className="fas fa-folder-open text-3xl mb-3"></i>
+                <p className="font-medium">No documents uploaded yet</p>
+                <p className="text-sm mt-1">Upload documents to train your AI agent</p>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Document Ingestion Sources - Coming Soon */}
+      <Card className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm z-10 flex items-center justify-center">
+          <div className="text-center">
+            <div className="inline-block px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full shadow-lg mb-2">
+              <i className="fas fa-rocket mr-2"></i>
+              <span className="font-semibold">Coming Soon</span>
+            </div>
+            <p className="text-sm text-slate-600 dark:text-slate-300 mt-2">Advanced integrations are on the way!</p>
+          </div>
+        </div>
+        <CardHeader>
           <CardTitle>Document Ingestion Sources</CardTitle>
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-slate-600 dark:text-slate-400">
             Connect multiple sources to build your chatbot's knowledge base
           </p>
         </CardHeader>
@@ -647,216 +815,62 @@ function DocumentsTab({ chatbotId }: { chatbotId: string }) {
 
           {/* Productivity Tools Section */}
           <div>
-            <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center">
+            <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center">
               <i className="fas fa-briefcase text-purple-500 mr-2"></i>
               Productivity & Knowledge Tools
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-              <button className="flex flex-col items-center justify-center p-4 border-2 border-slate-200 rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
-                <i className="fas fa-book text-3xl text-slate-800 mb-2 group-hover:scale-110 transition-transform"></i>
-                <span className="text-xs font-medium text-slate-700">Notion</span>
+              <button className="flex flex-col items-center justify-center p-4 border-2 border-slate-200 dark:border-slate-700 rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
+                <i className="fas fa-book text-3xl text-slate-800 dark:text-slate-300 mb-2 group-hover:scale-110 transition-transform"></i>
+                <span className="text-xs font-medium text-slate-700 dark:text-slate-300">Notion</span>
               </button>
-              <button className="flex flex-col items-center justify-center p-4 border-2 border-slate-200 rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
+              <button className="flex flex-col items-center justify-center p-4 border-2 border-slate-200 dark:border-slate-700 rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
                 <i className="fab fa-confluence text-3xl text-blue-600 mb-2 group-hover:scale-110 transition-transform"></i>
-                <span className="text-xs font-medium text-slate-700">Confluence</span>
+                <span className="text-xs font-medium text-slate-700 dark:text-slate-300">Confluence</span>
               </button>
-              <button className="flex flex-col items-center justify-center p-4 border-2 border-slate-200 rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
+              <button className="flex flex-col items-center justify-center p-4 border-2 border-slate-200 dark:border-slate-700 rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
                 <i className="fab fa-slack text-3xl text-purple-600 mb-2 group-hover:scale-110 transition-transform"></i>
-                <span className="text-xs font-medium text-slate-700">Slack</span>
+                <span className="text-xs font-medium text-slate-700 dark:text-slate-300">Slack</span>
               </button>
-              <button className="flex flex-col items-center justify-center p-4 border-2 border-slate-200 rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
+              <button className="flex flex-col items-center justify-center p-4 border-2 border-slate-200 dark:border-slate-700 rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
                 <i className="fas fa-envelope text-3xl text-red-500 mb-2 group-hover:scale-110 transition-transform"></i>
-                <span className="text-xs font-medium text-slate-700">Gmail</span>
+                <span className="text-xs font-medium text-slate-700 dark:text-slate-300">Gmail</span>
               </button>
-              <button className="flex flex-col items-center justify-center p-4 border-2 border-slate-200 rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
+              <button className="flex flex-col items-center justify-center p-4 border-2 border-slate-200 dark:border-slate-700 rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
                 <i className="fab fa-microsoft text-3xl text-blue-500 mb-2 group-hover:scale-110 transition-transform"></i>
-                <span className="text-xs font-medium text-slate-700">Outlook</span>
+                <span className="text-xs font-medium text-slate-700 dark:text-slate-300">Outlook</span>
               </button>
             </div>
           </div>
 
           {/* Other Sources Section */}
           <div>
-            <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center">
+            <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center">
               <i className="fas fa-database text-orange-500 mr-2"></i>
               Other Sources
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-              <button className="flex flex-col items-center justify-center p-4 border-2 border-slate-200 rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
+              <button className="flex flex-col items-center justify-center p-4 border-2 border-slate-200 dark:border-slate-700 rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
                 <i className="fab fa-aws text-3xl text-orange-500 mb-2 group-hover:scale-110 transition-transform"></i>
-                <span className="text-xs font-medium text-slate-700">AWS S3</span>
+                <span className="text-xs font-medium text-slate-700 dark:text-slate-300">AWS S3</span>
               </button>
-              <button className="flex flex-col items-center justify-center p-4 border-2 border-slate-200 rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
+              <button className="flex flex-col items-center justify-center p-4 border-2 border-slate-200 dark:border-slate-700 rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
                 <i className="fab fa-google text-3xl text-blue-500 mb-2 group-hover:scale-110 transition-transform"></i>
-                <span className="text-xs font-medium text-slate-700">Google Cloud</span>
+                <span className="text-xs font-medium text-slate-700 dark:text-slate-300">Google Cloud</span>
               </button>
-              <button className="flex flex-col items-center justify-center p-4 border-2 border-slate-200 rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
+              <button className="flex flex-col items-center justify-center p-4 border-2 border-slate-200 dark:border-slate-700 rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
                 <i className="fab fa-microsoft text-3xl text-blue-600 mb-2 group-hover:scale-110 transition-transform"></i>
-                <span className="text-xs font-medium text-slate-700">Azure Blob</span>
+                <span className="text-xs font-medium text-slate-700 dark:text-slate-300">Azure Blob</span>
               </button>
-              <button className="flex flex-col items-center justify-center p-4 border-2 border-slate-200 rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
+              <button className="flex flex-col items-center justify-center p-4 border-2 border-slate-200 dark:border-slate-700 rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
                 <i className="fas fa-server text-3xl text-slate-600 mb-2 group-hover:scale-110 transition-transform"></i>
-                <span className="text-xs font-medium text-slate-700">FTP/SFTP</span>
+                <span className="text-xs font-medium text-slate-700 dark:text-slate-300">FTP/SFTP</span>
               </button>
-              <button className="flex flex-col items-center justify-center p-4 border-2 border-slate-200 rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
+              <button className="flex flex-col items-center justify-center p-4 border-2 border-slate-200 dark:border-slate-700 rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
                 <i className="fas fa-file-archive text-3xl text-yellow-600 mb-2 group-hover:scale-110 transition-transform"></i>
-                <span className="text-xs font-medium text-slate-700">Zip Upload</span>
+                <span className="text-xs font-medium text-slate-700 dark:text-slate-300">Zip Upload</span>
               </button>
             </div>
-          </div>
-
-          {/* Direct File Upload */}
-          <div>
-            <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center">
-              <i className="fas fa-upload text-green-500 mr-2"></i>
-              Direct Upload
-            </h3>
-            <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center">
-              <div className="space-y-4">
-                <div className="mx-auto w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                  <i className="fas fa-cloud-upload-alt text-primary text-xl"></i>
-                </div>
-                <div>
-                  <h3 className="text-lg font-medium text-slate-900">Upload Documents</h3>
-                  <p className="text-sm text-slate-600">
-                    Drag and drop files here, or click to browse
-                  </p>
-                  <p className="text-xs text-slate-500 mt-1">
-                    Supported formats: PDF, DOC, DOCX, TXT, PPTX, CSV, XLS, XLSX
-                  </p>
-                </div>
-                <Button 
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploading}
-                  data-testid="button-upload-document"
-                >
-                  {uploading ? (
-                    <>
-                      <i className="fas fa-spinner fa-spin mr-2"></i>
-                      Scanning...
-                    </>
-                  ) : (
-                    <>
-                      <i className="fas fa-plus mr-2"></i>
-                      Choose Files
-                    </>
-                  )}
-                </Button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  multiple
-                  accept=".pdf,.doc,.docx,.txt,.pptx,.csv,.xls,.xlsx"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                />
-                {uploading && (
-                  <div className="mt-6 text-left">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-sm text-slate-600">{statusText || 'Processing...'}</p>
-                      <span className="text-xs text-slate-500">{Math.round(progress)}%</span>
-                    </div>
-                    <Progress value={progress} />
-                    <div className="flex items-center gap-2 mt-3 text-slate-500 text-xs">
-                      <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span> 
-                      <span>Simulating scan steps while documents are being indexed...</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Uploaded Documents</CardTitle>
-              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                Current session uploads • {uploadedFiles.length} document{uploadedFiles.length !== 1 ? 's' : ''}
-              </p>
-            </div>
-            {uploadedFiles.length > 0 && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setUploadedFiles([]);
-                  toast({
-                    title: "All Documents Cleared",
-                    description: "Upload list has been cleared for this session",
-                  });
-                }}
-                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-              >
-                <i className="fas fa-trash mr-2"></i>
-                Clear All
-              </Button>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {uploadedFiles.length > 0 ? (
-              uploadedFiles.map((file, index) => {
-                const uploadTime = new Date(file.timestamp);
-                const now = new Date();
-                const diffMinutes = Math.floor((now.getTime() - uploadTime.getTime()) / 60000);
-                const timeAgo = diffMinutes < 1 ? 'Just now' : 
-                               diffMinutes < 60 ? `${diffMinutes}m ago` : 
-                               diffMinutes < 1440 ? `${Math.floor(diffMinutes / 60)}h ago` : 
-                               `${Math.floor(diffMinutes / 1440)}d ago`;
-
-                return (
-                  <div key={index} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg hover:shadow-md transition-shadow">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900 dark:to-blue-800 rounded-lg flex items-center justify-center">
-                        <i className={`fas ${
-                          file.name.toLowerCase().endsWith('.pdf') ? 'fa-file-pdf text-red-600' : 
-                          file.name.toLowerCase().endsWith('.doc') || file.name.toLowerCase().endsWith('.docx') ? 'fa-file-word text-blue-600' :
-                          file.name.toLowerCase().endsWith('.xls') || file.name.toLowerCase().endsWith('.xlsx') ? 'fa-file-excel text-green-600' :
-                          file.name.toLowerCase().endsWith('.ppt') || file.name.toLowerCase().endsWith('.pptx') ? 'fa-file-powerpoint text-orange-600' :
-                          'fa-file-alt text-blue-600'
-                        } text-lg`}></i>
-                      </div>
-                      <div>
-                        <p className="font-medium text-slate-900 dark:text-white">{file.name}</p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">
-                          {timeAgo} • {file.size}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                        <i className="fas fa-check-circle mr-1"></i>
-                        Processed
-                      </Badge>
-                      <button 
-                        className="text-slate-400 hover:text-red-600 transition-colors"
-                        onClick={() => {
-                          setUploadedFiles(prev => prev.filter((_, i) => i !== index));
-                          toast({
-                            title: "Document Removed",
-                            description: "Document removed from current session list",
-                          });
-                        }}
-                        title="Remove from list"
-                      >
-                        <i className="fas fa-times"></i>
-                      </button>
-                    </div>
-                  </div>
-                );
-              })
-            ) : (
-              <div className="text-center py-8 text-slate-500 dark:text-slate-400">
-                <i className="fas fa-folder-open text-3xl mb-3"></i>
-                <p className="font-medium">No documents uploaded yet</p>
-                <p className="text-sm mt-1">Upload documents to train your AI agent</p>
-              </div>
-            )}
           </div>
         </CardContent>
       </Card>
