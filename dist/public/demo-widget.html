@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vyoma AI Widget Demo - Complete</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .demo-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 40px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 36px;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      font-size: 18px;
+      opacity: 0.9;
+    }
+
+    .content {
+      padding: 40px;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+      margin: 40px 0;
+    }
+
+    .feature-card {
+      background: #f8fafc;
+      padding: 30px;
+      border-radius: 12px;
+      border: 2px solid #e2e8f0;
+    }
+
+    .feature-card h3 {
+      color: #667eea;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .feature-card .icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 20px;
+    }
+
+    .feature-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .feature-list li {
+      padding: 8px 0;
+      padding-left: 30px;
+      position: relative;
+    }
+
+    .feature-list li:before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: #10b981;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    .demo-section {
+      background: #f8fafc;
+      padding: 30px;
+      border-radius: 12px;
+      margin: 30px 0;
+    }
+
+    .demo-section h2 {
+      color: #1e293b;
+      margin-bottom: 20px;
+    }
+
+    .instruction-box {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+      margin: 20px 0;
+    }
+
+    .instruction-box h4 {
+      color: #667eea;
+      margin-bottom: 10px;
+    }
+
+    .step {
+      display: flex;
+      align-items: start;
+      margin: 15px 0;
+      gap: 15px;
+    }
+
+    .step-number {
+      width: 32px;
+      height: 32px;
+      background: #667eea;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+
+    .code-block {
+      background: #1e293b;
+      color: #10b981;
+      padding: 20px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      margin: 15px 0;
+    }
+
+    .control-panel {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-outline {
+      background: white;
+      color: #667eea;
+      border: 2px solid #667eea;
+    }
+
+    .btn-outline:hover {
+      background: #667eea;
+      color: white;
+    }
+
+    .alert {
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+
+    .alert-success {
+      background: #d1fae5;
+      border-left: 4px solid #10b981;
+      color: #065f46;
+    }
+
+    .alert-info {
+      background: #dbeafe;
+      border-left: 4px solid #3b82f6;
+      color: #1e40af;
+    }
+
+    .markdown-example {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 15px 0;
+      border: 2px dashed #e2e8f0;
+    }
+
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 28px;
+      }
+      .feature-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-container">
+    <div class="header">
+      <h1>🤖 Vyoma AI Widget Demo</h1>
+      <p>Complete Widget with Markdown Support & Minimize Functionality</p>
+    </div>
+
+    <div class="content">
+      <!-- What You'll See -->
+      <div class="alert alert-success">
+        <strong>✅ Widget is Loaded!</strong><br>
+        Look at the <strong>bottom-right corner</strong> of your screen. You should see a floating purple chat button with a pulse animation.
+      </div>
+
+      <!-- Features -->
+      <div class="feature-grid">
+        <div class="feature-card">
+          <h3>
+            <div class="icon">💬</div>
+            <span>Popup Functionality</span>
+          </h3>
+          <ul class="feature-list">
+            <li>Floating button appears</li>
+            <li>Click to open chat</li>
+            <li>Click [─] to minimize</li>
+            <li>Button stays visible</li>
+            <li>Click again to reopen</li>
+          </ul>
+        </div>
+
+        <div class="feature-card">
+          <h3>
+            <div class="icon">✨</div>
+            <span>Markdown Support</span>
+          </h3>
+          <ul class="feature-list">
+            <li><strong>Bold text</strong></li>
+            <li><em>Italic text</em></li>
+            <li><code>Code formatting</code></li>
+            <li>Numbered lists</li>
+            <li>Bullet points</li>
+          </ul>
+        </div>
+
+        <div class="feature-card">
+          <h3>
+            <div class="icon">🎨</div>
+            <span>Beautiful Design</span>
+          </h3>
+          <ul class="feature-list">
+            <li>Gradient header</li>
+            <li>Smooth animations</li>
+            <li>Responsive layout</li>
+            <li>Professional styling</li>
+            <li>Dark mode ready</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Instructions -->
+      <div class="demo-section">
+        <h2>🎯 How to Test</h2>
+        
+        <div class="instruction-box">
+          <h4>Expected Flow:</h4>
+          <div class="step">
+            <div class="step-number">1</div>
+            <div>
+              <strong>See the floating button</strong><br>
+              Look at bottom-right corner. Round purple button with pulse effect.
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-number">2</div>
+            <div>
+              <strong>Click to open</strong><br>
+              Chat window slides up with smooth animation.
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-number">3</div>
+            <div>
+              <strong>Send a test message</strong><br>
+              Type: "Tell me about your **features** with *lists*"
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-number">4</div>
+            <div>
+              <strong>See markdown rendering</strong><br>
+              Bold, italic, lists all render properly!
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-number">5</div>
+            <div>
+              <strong>Click [─] to minimize</strong><br>
+              Chat closes, button remains visible.
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-number">6</div>
+            <div>
+              <strong>Click button to reopen</strong><br>
+              Your conversation is preserved!
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Markdown Examples -->
+      <div class="demo-section">
+        <h2>📝 Markdown Examples</h2>
+        <p>Try sending these messages to see how markdown renders:</p>
+
+        <div class="markdown-example">
+          <strong>Example 1 - Bold and Italic:</strong>
+          <div class="code-block">Tell me about **bold text** and *italic text*</div>
+          <strong>Result:</strong> Tell me about <strong>bold text</strong> and <em>italic text</em>
+        </div>
+
+        <div class="markdown-example">
+          <strong>Example 2 - Lists:</strong>
+          <div class="code-block">Show me a list:
+1. First item
+2. Second item
+3. Third item</div>
+          <strong>Result:</strong>
+          <ol>
+            <li>First item</li>
+            <li>Second item</li>
+            <li>Third item</li>
+          </ol>
+        </div>
+
+        <div class="markdown-example">
+          <strong>Example 3 - Code:</strong>
+          <div class="code-block">Use `console.log()` to debug</div>
+          <strong>Result:</strong> Use <code>console.log()</code> to debug
+        </div>
+      </div>
+
+      <!-- Control Panel -->
+      <div class="demo-section">
+        <h2>🎮 Widget Controls</h2>
+        <p>Control the widget programmatically:</p>
+        
+        <div class="control-panel">
+          <button class="btn" onclick="openWidget()">
+            📂 Open Widget
+          </button>
+          <button class="btn" onclick="closeWidget()">
+            📁 Close Widget
+          </button>
+          <button class="btn" onclick="toggleWidget()">
+            🔄 Toggle Widget
+          </button>
+          <button class="btn btn-outline" onclick="checkStatus()">
+            ❓ Check Status
+          </button>
+        </div>
+      </div>
+
+      <!-- Backend Setup -->
+      <div class="demo-section">
+        <h2>⚙️ Backend Setup Required</h2>
+        
+        <div class="alert alert-info">
+          <strong>Important:</strong> For the widget to work, you need:<br>
+          1. FastAPI running on <code>http://49.249.160.198:8006</code><br>
+          2. CORS enabled<br>
+          3. <code>/api/v1/rag/chat</code> endpoint accessible
+        </div>
+
+        <p><strong>Add this to your FastAPI backend:</strong></p>
+        <div class="code-block">from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)</div>
+      </div>
+
+      <!-- Embed Code -->
+      <div class="demo-section">
+        <h2>📋 Embed on Your Website</h2>
+        <p>Copy this code and paste before <code>&lt;/body&gt;</code> tag:</p>
+        <div class="code-block">&lt;!-- Vyoma AI Chat Widget --&gt;
+&lt;script
+  src="https://vyomai.techraq.com/widget.js"
+  data-chatbot-id="YOUR_CHATBOT_ID"
+  data-api-url="https://vyomai.techraq.com"
+  data-position="bottom-right"
+  data-color="#6366f1"
+  data-button-text="Chat with us"
+  async
+&gt;&lt;/script&gt;</div>
+        
+        <div class="alert alert-info">
+          <strong>⚠️ Don't forget:</strong> Replace <code>YOUR_CHATBOT_ID</code> with your actual chatbot ID!
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTUAL WIDGET EMBED -->
+  <script
+    src="https://vyomai.techraq.com/widget.js"
+    data-chatbot-id="YOUR_CHATBOT_ID"
+    data-api-url="https://vyomai.techraq.com"
+    data-position="bottom-right"
+    data-color="#6366f1"
+    data-button-text="Chat with us"
+    async
+  ></script>
+
+  <script>
+    function openWidget() {
+      if (window.VyomaWidget) {
+        window.VyomaWidget.open();
+      } else {
+        alert('Widget not loaded yet. Please wait a moment.');
+      }
+    }
+
+    function closeWidget() {
+      if (window.VyomaWidget) {
+        window.VyomaWidget.close();
+      } else {
+        alert('Widget not loaded yet.');
+      }
+    }
+
+    function toggleWidget() {
+      if (window.VyomaWidget) {
+        window.VyomaWidget.toggle();
+      } else {
+        alert('Widget not loaded yet.');
+      }
+    }
+
+    function checkStatus() {
+      if (window.VyomaWidget) {
+        const status = window.VyomaWidget.isOpen() ? 'OPEN' : 'CLOSED';
+        alert(`Widget is currently: ${status}`);
+      } else {
+        alert('Widget not loaded yet.');
+      }
+    }
+
+    // Check widget loaded after 2 seconds
+    setTimeout(() => {
+      const widgetButton = document.querySelector('.vyoma-widget-button');
+      if (!widgetButton) {
+        console.warn('⚠️ Widget button not found. Check if widget.js is loading correctly.');
+      } else {
+        console.log('✅ Widget loaded successfully!');
+      }
+    }, 2000);
+  </script>
+</body>
+</html>
+

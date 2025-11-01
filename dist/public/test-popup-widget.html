@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Popup Widget Test - Correct Flow</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1000px;
+      margin: 50px auto;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+    
+    .container {
+      background: white;
+      border-radius: 12px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+    
+    .flow-diagram {
+      background: #f8fafc;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+    
+    .flow-step {
+      display: flex;
+      align-items: center;
+      margin: 10px 0;
+      font-size: 16px;
+    }
+    
+    .flow-step .number {
+      width: 30px;
+      height: 30px;
+      background: #667eea;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      margin-right: 15px;
+    }
+    
+    .info-box {
+      background: #dbeafe;
+      border-left: 4px solid #3b82f6;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+    
+    .warning-box {
+      background: #fef3c7;
+      border-left: 4px solid #f59e0b;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+    
+    .success-box {
+      background: #d1fae5;
+      border-left: 4px solid #10b981;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+    
+    code {
+      background: #1e293b;
+      color: #10b981;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+    }
+    
+    .button {
+      background: #667eea;
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 10px 10px 10px 0;
+      transition: all 0.3s;
+    }
+    
+    .button:hover {
+      background: #5a67d8;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    
+    .checklist {
+      list-style: none;
+      padding: 0;
+    }
+    
+    .checklist li {
+      padding: 10px;
+      margin: 5px 0;
+      background: #f8fafc;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+    }
+    
+    .checklist li:before {
+      content: "✓";
+      color: #10b981;
+      font-weight: bold;
+      margin-right: 10px;
+      font-size: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🤖 Popup Widget Test - Correct Flow</h1>
+    <p style="color: #64748b; font-size: 14px;">Testing the proper widget behavior: Button → Open → Minimize → Button</p>
+    
+    <div class="flow-diagram">
+      <h3 style="margin-top: 0;">Expected Flow:</h3>
+      <div class="flow-step">
+        <div class="number">1</div>
+        <div>You see a <strong>floating chat button</strong> in bottom-right corner</div>
+      </div>
+      <div class="flow-step">
+        <div class="number">2</div>
+        <div>Click the button → <strong>Chat window opens</strong></div>
+      </div>
+      <div class="flow-step">
+        <div class="number">3</div>
+        <div>Chat with the bot or click <strong>[─] minimize button</strong></div>
+      </div>
+      <div class="flow-step">
+        <div class="number">4</div>
+        <div>Chat closes → <strong>Back to floating button</strong></div>
+      </div>
+      <div class="flow-step">
+        <div class="number">5</div>
+        <div>Click button again → <strong>Reopens chat!</strong></div>
+      </div>
+    </div>
+
+    <div class="success-box">
+      <h3 style="margin-top: 0;">✅ Widget Should Be Loaded!</h3>
+      <p>Look at the <strong>bottom-right corner</strong> of your screen. You should see a round, floating chat button with a pulse animation.</p>
+      <p><strong>If you see it:</strong> Click it to open the chat!</p>
+      <p><strong>If you don't see it:</strong> Check the troubleshooting section below.</p>
+    </div>
+
+    <div class="info-box">
+      <h3 style="margin-top: 0;">🎯 Test the Minimize Feature:</h3>
+      <ol style="margin: 10px 0;">
+        <li>Click the floating button to open chat</li>
+        <li>Look for <strong>[─]</strong> and <strong>[×]</strong> buttons in the chat header (top-right)</li>
+        <li>Click <strong>[─]</strong> to minimize</li>
+        <li>Chat should close and button should reappear</li>
+        <li>Click button again to reopen!</li>
+      </ol>
+    </div>
+
+    <h2>🔧 Troubleshooting</h2>
+
+    <div class="warning-box">
+      <h3 style="margin-top: 0;">❌ Widget Not Appearing?</h3>
+      <ul class="checklist">
+        <li>Open browser console (F12) and check for errors</li>
+        <li>Make sure you updated <code>YOUR_CHATBOT_ID</code> in the code below</li>
+        <li>Check that <code>widget.js</code> file exists at <code>http://localhost:3000/widget.js</code></li>
+        <li>Verify your React dev server is running on port 3000</li>
+      </ul>
+    </div>
+
+    <div class="warning-box">
+      <h3 style="margin-top: 0;">❌ "Failed to fetch" Error?</h3>
+      <ul class="checklist">
+        <li>Make sure your FastAPI backend is running on <code>http://49.249.160.198:8006</code></li>
+        <li>Enable CORS in your FastAPI backend (see code below)</li>
+        <li>Test if backend is reachable: <code>curl http://49.249.160.198:8006</code></li>
+        <li>Check your firewall settings</li>
+      </ul>
+    </div>
+
+    <h2>🔥 Backend CORS Fix (Required!)</h2>
+    <p>Add this to your FastAPI backend:</p>
+    <pre style="background: #1e293b; color: #10b981; padding: 15px; border-radius: 8px; overflow-x: auto; font-size: 13px;">
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Or ["http://localhost:3000"]
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+    </pre>
+
+    <h2>🎮 Control the Widget Programmatically</h2>
+    <p>Try these buttons to control the widget from JavaScript:</p>
+    <button class="button" onclick="window.VyomaWidget && window.VyomaWidget.open()">
+      📂 Open Widget
+    </button>
+    <button class="button" onclick="window.VyomaWidget && window.VyomaWidget.close()">
+      📁 Close Widget
+    </button>
+    <button class="button" onclick="window.VyomaWidget && window.VyomaWidget.toggle()">
+      🔄 Toggle Widget
+    </button>
+    <button class="button" onclick="alert('Widget is ' + (window.VyomaWidget && window.VyomaWidget.isOpen() ? 'OPEN' : 'CLOSED'))">
+      ❓ Check Status
+    </button>
+
+    <h2>📝 Embed Code Used:</h2>
+    <pre style="background: #1e293b; color: #10b981; padding: 15px; border-radius: 8px; overflow-x: auto; font-size: 13px;">
+&lt;!-- Vyoma AI Chat Widget --&gt;
+&lt;script
+  src="https://vyomai.techraq.com/widget.js"
+  data-chatbot-id="YOUR_CHATBOT_ID"
+  data-api-url="https://vyomai.techraq.com"
+  data-position="bottom-right"
+  data-color="#6366f1"
+  data-button-text="Chat with us"
+  async
+&gt;&lt;/script&gt;
+    </pre>
+
+    <div class="info-box">
+      <h3 style="margin-top: 0;">💡 Remember to Update:</h3>
+      <p>Replace <code>YOUR_CHATBOT_ID</code> with your actual chatbot ID!</p>
+      <p>Get your chatbot ID from the dashboard or database.</p>
+    </div>
+
+    <h2>🐛 Debug Info</h2>
+    <div style="background: #f8fafc; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 12px;">
+      <p><strong>Current Page:</strong> <span id="currentPage"></span></p>
+      <p><strong>Widget Loaded:</strong> <span id="widgetStatus"></span></p>
+      <p><strong>API URL:</strong> http://49.249.160.198:8006</p>
+      <p><strong>Console:</strong> Open F12 to see detailed logs</p>
+    </div>
+  </div>
+
+  <!-- ============================================= -->
+  <!-- VYOMA AI CHAT WIDGET                          -->
+  <!-- ============================================= -->
+  <!-- ⚠️ REPLACE YOUR_CHATBOT_ID WITH YOUR ACTUAL ID! -->
+  <script
+    src="https://vyomai.techraq.com/widget.js"
+    data-chatbot-id="YOUR_CHATBOT_ID"
+    data-api-url="https://vyomai.techraq.com"
+    data-position="bottom-right"
+    data-color="#6366f1"
+    data-button-text="Chat with us"
+    async
+  ></script>
+
+  <script>
+    // Update debug info
+    document.getElementById('currentPage').textContent = window.location.href;
+    
+    // Check if widget loaded
+    setTimeout(() => {
+      const widgetButton = document.querySelector('.vyoma-widget-button');
+      document.getElementById('widgetStatus').textContent = widgetButton ? '✅ YES' : '❌ NO';
+      
+      if (!widgetButton) {
+        alert('⚠️ Widget not loaded! Check console (F12) for errors.');
+      }
+    }, 2000);
+
+    // Log widget API availability
+    setTimeout(() => {
+      console.log('='.repeat(50));
+      console.log('VYOMA WIDGET DEBUG INFO');
+      console.log('='.repeat(50));
+      console.log('Widget API available:', !!window.VyomaWidget);
+      if (window.VyomaWidget) {
+        console.log('Widget is open:', window.VyomaWidget.isOpen());
+        console.log('Available methods:', Object.keys(window.VyomaWidget));
+      }
+      console.log('Widget button found:', !!document.querySelector('.vyoma-widget-button'));
+      console.log('Widget container found:', !!document.querySelector('.vyoma-widget-container'));
+      console.log('='.repeat(50));
+    }, 2000);
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Widget Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+    }
+    h1 {
+      color: #333;
+    }
+    .info-box {
+      background: #f0f9ff;
+      border: 2px solid #0ea5e9;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    .info-box h2 {
+      margin-top: 0;
+      color: #0369a1;
+    }
+    code {
+      background: #f1f5f9;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <h1>🤖 Vyoma.ai Widget Test Page</h1>
+  
+  <div class="info-box">
+    <h2>✅ Widget Loaded!</h2>
+    <p>You should see a floating chat button in the bottom-right corner of this page.</p>
+    <p><strong>Instructions:</strong></p>
+    <ol>
+      <li>Click the chat button to open the widget</li>
+      <li>Type a message and send it</li>
+      <li>Check the browser console (F12) for API call details</li>
+      <li>The widget should now connect to <code>http://49.249.160.198:8006/api/v1/rag/chat</code></li>
+    </ol>
+  </div>
+
+  <div class="info-box" style="background: #fef3c7; border-color: #f59e0b;">
+    <h2>🔧 Troubleshooting</h2>
+    <p><strong>If the widget doesn't work:</strong></p>
+    <ul>
+      <li>Open browser console (F12) and check for errors</li>
+      <li>Verify your FastAPI backend is running on <code>http://49.249.160.198:8006</code></li>
+      <li>Check CORS settings in your FastAPI backend</li>
+      <li>Make sure the chatbot ID in the URL is correct</li>
+    </ul>
+  </div>
+
+  <p><strong>API Endpoint:</strong> <code>http://49.249.160.198:8006/api/v1/rag/chat</code></p>
+  <p><strong>Request Format:</strong></p>
+  <pre style="background: #1e293b; color: #10b981; padding: 15px; border-radius: 8px; overflow-x: auto;">
+{
+  "chatbot_id": "YOUR_CHATBOT_ID",
+  "query": "User message here",
+  "session_id": "optional_session_id"
+}
+  </pre>
+
+  <!-- Vyoma AI Chat Widget -->
+  <!-- REPLACE YOUR_CHATBOT_ID with your actual chatbot ID -->
+  <script
+    src="https://vyomai.techraq.com/widget.js"
+    data-chatbot-id="YOUR_CHATBOT_ID"
+    data-api-url="https://vyomai.techraq.com"
+    data-position="bottom-right"
+    data-color="#6366f1"
+    data-button-text="Chat with us"
+    async
+  ></script>
+</body>
+</html>
+
