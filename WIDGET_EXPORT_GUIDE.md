@@ -64,7 +64,7 @@ This page lets you test all 3 embedding methods side-by-side!
 ```html
 <!-- Vyoma AI Iframe Embed -->
 <iframe
-  src="http://localhost:3000/widget.html?id=YOUR_CHATBOT_ID&api=http://49.249.160.198:8006"
+  src="http://localhost:3000/widget.html?id=YOUR_CHATBOT_ID&api=https://vyomai.techraq.com"
   width="400"
   height="600"
   frameborder="0"
@@ -92,7 +92,7 @@ This page lets you test all 3 embedding methods side-by-side!
 <script>
 (function() {
   var iframe = document.createElement('iframe');
-  iframe.src = 'http://localhost:3000/widget.html?id=YOUR_CHATBOT_ID&api=http://49.249.160.198:8006';
+  iframe.src = 'http://localhost:3000/widget.html?id=YOUR_CHATBOT_ID&api=https://vyomai.techraq.com';
   iframe.style.cssText = 'position: fixed; bottom: 20px; right: 20px; width: 400px; height: 600px; border: none; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); z-index: 9999;';
   document.body.appendChild(iframe);
 })();
@@ -167,7 +167,7 @@ From the "Embed & Export" tab in your dashboard, or use the codes above.
 Replace:
 - `YOUR_CHATBOT_ID` → Your actual chatbot ID
 - `http://localhost:3000` → Your production URL (when deploying)
-- `http://49.249.160.198:8006` → Your production API URL
+- `https://vyomai.techraq.com` → Your production API URL
 
 ### **Step 5: Paste Before `</body>`**
 
@@ -244,7 +244,7 @@ Replace:
 
   <!-- Vyoma AI Widget - Always Visible -->
   <iframe 
-    src="http://localhost:3000/widget.html?id=help123&api=http://49.249.160.198:8006"
+    src="http://localhost:3000/widget.html?id=help123&api=https://vyomai.techraq.com"
     width="400"
     height="600"
     style="position: fixed; bottom: 20px; right: 20px; border: none; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); z-index: 9999;"

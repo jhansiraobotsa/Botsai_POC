@@ -240,7 +240,7 @@ Or embed on any page and test!
 ### **Check Backend:**
 ```bash
 # Test if endpoint requires auth
-curl -X POST http://49.249.160.198:8006/api/v1/rag/chat \
+curl -X POST https://vyomai.techraq.com/api/v1/rag/chat \
   -H "Content-Type: application/json" \
   -d '{"chatbot_id":"test","query":"hello","session_id":""}'
 ```

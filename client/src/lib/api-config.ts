@@ -1,5 +1,5 @@
 // FastAPI Backend Configuration
-export const FASTAPI_BASE_URL = "http://49.249.160.198:8006";
+export const FASTAPI_BASE_URL = "https://vyomai.techraq.com";
 
 // Helper function to get authentication headers
 export function getAuthHeaders(): HeadersInit {

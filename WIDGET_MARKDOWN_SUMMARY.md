@@ -172,7 +172,7 @@ window.addEventListener('message', function(event) {
 ## 📋 Complete Checklist
 
 ### Backend Setup:
-- [ ] FastAPI running on `http://49.249.160.198:8006`
+- [ ] FastAPI running on `https://vyomai.techraq.com`
 - [ ] CORS enabled:
 ```python
 app.add_middleware(
@@ -301,7 +301,7 @@ Try them all with our *free trial*!
 **Replace:**
 - `YOUR_CHATBOT_ID` → Your actual chatbot ID
 - `http://localhost:3000` → Your production URL (when deploying)
-- `http://49.249.160.198:8006` → Your production API URL
+- `https://vyomai.techraq.com` → Your production API URL
 
 ---
 

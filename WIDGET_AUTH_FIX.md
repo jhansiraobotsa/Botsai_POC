@@ -180,7 +180,7 @@ async def rag_chat(request: ChatRequest, db: Session = Depends(get_db)):
 
 ### Test 1: Direct Widget URL
 ```
-http://localhost:3000/widget.html?id=YOUR_CHATBOT_ID&api=http://49.249.160.198:8006
+http://localhost:3000/widget.html?id=YOUR_CHATBOT_ID&api=https://vyomai.techraq.com
 ```
 - Should load without errors
 - Should show chatbot name
@@ -212,8 +212,8 @@ Open F12 console, you should see:
 ```
 ✅ Vyoma AI Widget initialized
 ✅ Chatbot ID: your_id
-✅ API URL: http://49.249.160.198:8006
-✅ Sending message to: http://49.249.160.198:8006/api/v1/rag/chat
+✅ API URL: https://vyomai.techraq.com
+✅ Sending message to: https://vyomai.techraq.com/api/v1/rag/chat
 ✅ Response status: 200
 ✅ Response data: {answer: "...", session_id: "..."}
 ```
@@ -282,7 +282,7 @@ async def widget_chat_proxy(request: ChatRequest, db: Session = Depends(get_db))
 
 1. **Is your backend running?**
    ```bash
-   curl http://49.249.160.198:8006/api/v1/rag/chat
+   curl https://vyomai.techraq.com/api/v1/rag/chat
    ```
 
 2. **Is CORS configured?**

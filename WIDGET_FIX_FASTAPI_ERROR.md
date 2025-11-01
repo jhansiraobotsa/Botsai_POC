@@ -6,12 +6,12 @@
 When embedding the widget using the script tag, you saw a **FastAPI "page not found"** error instead of the chat interface.
 
 ### **Root Cause:**
-The `widget.js` script was trying to load `widget.html` from your **FastAPI backend** (`http://49.249.160.198:8006`) instead of from your **React frontend** (`http://localhost:3000`).
+The `widget.js` script was trying to load `widget.html` from your **FastAPI backend** (`https://vyomai.techraq.com`) instead of from your **React frontend** (`http://localhost:3000`).
 
 **What was happening:**
 ```javascript
 // WRONG - Was trying to load from API URL
-iframe.src = `http://49.249.160.198:8006/widget.html?id=...`
+iframe.src = `https://vyomai.techraq.com/widget.html?id=...`
                     ↑
             FastAPI backend - doesn't have widget.html!
 ```
@@ -48,7 +48,7 @@ iframe.src = `${widgetBaseUrl}/widget.html?id=${chatbotId}&api=${apiUrl}`;
 
 Now:
 - ✅ `widget.html` loads from React frontend (`http://localhost:3000`)
-- ✅ API calls still go to FastAPI backend (`http://49.249.160.198:8006`)
+- ✅ API calls still go to FastAPI backend (`https://vyomai.techraq.com`)
 
 ---
 
@@ -156,11 +156,11 @@ From your `test.html` file:
 3. widget.js detects it was loaded from localhost:3000
    ↓
 4. Creates iframe pointing to http://localhost:3000/widget.html
-   (NOT http://49.249.160.198:8006/widget.html!)
+   (NOT https://vyomai.techraq.com/widget.html!)
    ↓
 5. widget.html loads inside iframe
    ↓
-6. User chats → API calls go to http://49.249.160.198:8006/api/v1/rag/chat
+6. User chats → API calls go to https://vyomai.techraq.com/api/v1/rag/chat
    ↓
 7. FastAPI backend responds
    ↓
