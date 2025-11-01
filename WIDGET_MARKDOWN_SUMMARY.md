@@ -60,9 +60,9 @@ http://localhost:3000/test-popup-widget.html
 Just add this code:
 ```html
 <script
-  src="http://localhost:3000/widget.js"
+  src="https://vyomai.techraq.com/widget.js"
   data-chatbot-id="YOUR_CHATBOT_ID"
-  data-api-url="http://192.168.1.31:8006"
+  data-api-url="https://vyomai.techraq.com"
   async
 ></script>
 ```
@@ -172,7 +172,7 @@ window.addEventListener('message', function(event) {
 ## 📋 Complete Checklist
 
 ### Backend Setup:
-- [ ] FastAPI running on `http://192.168.1.31:8006`
+- [ ] FastAPI running on `http://49.249.160.198:8006`
 - [ ] CORS enabled:
 ```python
 app.add_middleware(
@@ -286,9 +286,9 @@ Try them all with our *free trial*!
 
   <!-- Add this before </body> -->
   <script
-    src="http://localhost:3000/widget.js"
+    src="https://vyomai.techraq.com/widget.js"
     data-chatbot-id="YOUR_CHATBOT_ID"
-    data-api-url="http://192.168.1.31:8006"
+    data-api-url="https://vyomai.techraq.com"
     data-position="bottom-right"
     data-color="#6366f1"
     data-button-text="Chat with us"
@@ -301,7 +301,7 @@ Try them all with our *free trial*!
 **Replace:**
 - `YOUR_CHATBOT_ID` → Your actual chatbot ID
 - `http://localhost:3000` → Your production URL (when deploying)
-- `http://192.168.1.31:8006` → Your production API URL
+- `http://49.249.160.198:8006` → Your production API URL
 
 ---
 
@@ -391,7 +391,7 @@ http://localhost:3000/demo-widget.html
 
 **Embed it:**
 ```html
-<script src="http://localhost:3000/widget.js" 
+<script src="https://vyomai.techraq.com/widget.js" 
         data-chatbot-id="YOUR_ID" async></script>
 ```
 

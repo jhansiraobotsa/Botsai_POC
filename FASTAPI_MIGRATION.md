@@ -9,7 +9,7 @@ This document outlines the migration from Express.js backend APIs to FastAPI bac
 **File:** `client/src/lib/api-config.ts`
 
 This new file contains:
-- Base URL configuration for FastAPI backend (`http://192.168.1.31:8006`)
+- Base URL configuration for FastAPI backend (`http://49.249.160.198:8006`)
 - All API endpoint definitions
 - Data transformation functions to convert between FastAPI and frontend formats
 - TypeScript interfaces for type safety
@@ -112,7 +112,7 @@ FastAPI Request:
 ### Base URL
 The FastAPI base URL is configured in `client/src/lib/api-config.ts`:
 ```typescript
-export const FASTAPI_BASE_URL = "http://192.168.1.31:8006";
+export const FASTAPI_BASE_URL = "http://49.249.160.198:8006";
 ```
 
 **To change the backend URL:** Update this constant in `api-config.ts`.

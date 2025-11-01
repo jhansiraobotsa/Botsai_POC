@@ -46,7 +46,7 @@ addMessage(botResponse, 'bot');
 ### 2. **Updated Default API URL**
 
 **Before:** `http://localhost:8006`  
-**After:** `http://192.168.1.31:8006` (matches your backend from api-config.ts)
+**After:** `http://49.249.160.198:8006` (matches your backend from api-config.ts)
 
 ### 3. **Added Debug Logging**
 
@@ -61,12 +61,12 @@ This helps you see exactly what's happening!
 
 ### 4. **Updated Embed Code Generator**
 
-The "Embed & Export" tab now generates code with the correct API URL (`http://192.168.1.31:8006`).
+The "Embed & Export" tab now generates code with the correct API URL (`http://49.249.160.198:8006`).
 
 ## 🧪 How to Test
 
 ### Option 1: Quick Test (Direct Widget)
-1. Open: `http://localhost:3000/widget.html?id=YOUR_CHATBOT_ID&api=http://192.168.1.31:8006`
+1. Open: `http://localhost:3000/widget.html?id=YOUR_CHATBOT_ID&api=http://49.249.160.198:8006`
 2. Type a message
 3. Check browser console (F12) for API calls
 4. Should see real responses from your backend!
@@ -86,7 +86,7 @@ The "Embed & Export" tab now generates code with the correct API URL (`http://19
 
 ## 📊 What the API Call Looks Like Now
 
-**Endpoint:** `http://192.168.1.31:8006/api/v1/rag/chat`
+**Endpoint:** `http://49.249.160.198:8006/api/v1/rag/chat`
 
 **Request:**
 ```json
@@ -109,7 +109,7 @@ The "Embed & Export" tab now generates code with the correct API URL (`http://19
 
 Open browser console (F12) and you'll now see:
 ```
-Sending message to: http://192.168.1.31:8006/api/v1/rag/chat
+Sending message to: http://49.249.160.198:8006/api/v1/rag/chat
 Payload: {chatbot_id: "123", query: "test", session_id: ""}
 Response status: 200
 Response data: {answer: "...", session_id: "..."}

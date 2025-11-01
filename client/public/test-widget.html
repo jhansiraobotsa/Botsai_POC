@@ -44,7 +44,7 @@
       <li>Click the chat button to open the widget</li>
       <li>Type a message and send it</li>
       <li>Check the browser console (F12) for API call details</li>
-      <li>The widget should now connect to <code>http://192.168.1.31:8006/api/v1/rag/chat</code></li>
+      <li>The widget should now connect to <code>http://49.249.160.198:8006/api/v1/rag/chat</code></li>
     </ol>
   </div>
 
@@ -53,13 +53,13 @@
     <p><strong>If the widget doesn't work:</strong></p>
     <ul>
       <li>Open browser console (F12) and check for errors</li>
-      <li>Verify your FastAPI backend is running on <code>http://192.168.1.31:8006</code></li>
+      <li>Verify your FastAPI backend is running on <code>http://49.249.160.198:8006</code></li>
       <li>Check CORS settings in your FastAPI backend</li>
       <li>Make sure the chatbot ID in the URL is correct</li>
     </ul>
   </div>
 
-  <p><strong>API Endpoint:</strong> <code>http://192.168.1.31:8006/api/v1/rag/chat</code></p>
+  <p><strong>API Endpoint:</strong> <code>http://49.249.160.198:8006/api/v1/rag/chat</code></p>
   <p><strong>Request Format:</strong></p>
   <pre style="background: #1e293b; color: #10b981; padding: 15px; border-radius: 8px; overflow-x: auto;">
 {
@@ -72,9 +72,9 @@
   <!-- Vyoma AI Chat Widget -->
   <!-- REPLACE YOUR_CHATBOT_ID with your actual chatbot ID -->
   <script
-    src="http://localhost:3000/widget.js"
+    src="https://vyomai.techraq.com/widget.js"
     data-chatbot-id="YOUR_CHATBOT_ID"
-    data-api-url="http://192.168.1.31:8006"
+    data-api-url="https://vyomai.techraq.com"
     data-position="bottom-right"
     data-color="#6366f1"
     data-button-text="Chat with us"

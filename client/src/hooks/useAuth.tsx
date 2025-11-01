@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
-const API_BASE = "http://192.168.1.31:8006/api/v1/auth";
+const API_BASE = "http://49.249.160.198:8006/api/v1/auth";
 
 export interface User {
   id: number;

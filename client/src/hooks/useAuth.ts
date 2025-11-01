@@ -2,7 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 
-const API_BASE = "http://192.168.1.31:8006/api/v1";
+const API_BASE = "http://49.249.160.198:8006/api/v1";
 
 export interface AuthUser {
   id: number;

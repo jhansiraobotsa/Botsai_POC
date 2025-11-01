@@ -104,7 +104,7 @@ async def widget_chat(request: ChatRequest):
 
 1. **Embedded Widget:**
    ```html
-   <script src="http://localhost:3000/widget.js" 
+   <script src="https://vyomai.techraq.com/widget.js" 
            data-chatbot-id="YOUR_ID" async></script>
    ```
    - Click chat button → Opens
@@ -204,9 +204,9 @@ Or embed on any page and test!
   <h1>Test Page</h1>
   
   <script
-    src="http://localhost:3000/widget.js"
+    src="https://vyomai.techraq.com/widget.js"
     data-chatbot-id="YOUR_CHATBOT_ID"
-    data-api-url="http://192.168.1.31:8006"
+    data-api-url="https://vyomai.techraq.com"
     data-position="bottom-right"
     async
   ></script>
@@ -240,7 +240,7 @@ Or embed on any page and test!
 ### **Check Backend:**
 ```bash
 # Test if endpoint requires auth
-curl -X POST http://192.168.1.31:8006/api/v1/rag/chat \
+curl -X POST http://49.249.160.198:8006/api/v1/rag/chat \
   -H "Content-Type: application/json" \
   -d '{"chatbot_id":"test","query":"hello","session_id":""}'
 ```

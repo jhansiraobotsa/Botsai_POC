@@ -1830,7 +1830,7 @@ function EmbedExportTab({ chatbot }: { chatbot: Chatbot }) {
   const { toast } = useToast();
   
   const baseUrl = window.location.origin;
-  const apiUrl = 'http://192.168.1.31:8006'; // Updated to match your backend from api-config.ts
+  const apiUrl = 'http://49.249.160.198:8006'; // Updated to match your backend from api-config.ts
   
   // Popup Widget (Recommended)
   const popupWidgetCode = `<!-- Vyoma AI Chat Widget -->

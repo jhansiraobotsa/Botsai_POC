@@ -62,7 +62,7 @@ window.VyomaWidget.isOpen();  // Check status
 **1. Popup Widget (Recommended) ⭐**
 ```html
 <script
-  src="http://localhost:3000/widget.js"
+  src="https://vyomai.techraq.com/widget.js"
   data-chatbot-id="YOUR_CHATBOT_ID"
   data-api-url="http://localhost:8006"
   data-position="bottom-right"
@@ -192,7 +192,7 @@ Dashboard → Select Chatbot → Embed & Export Tab
 **Step 4: Paste on Website**
 ```html
 <!-- Before </body> tag -->
-<script src="http://localhost:3000/widget.js" ...></script>
+<script src="https://vyomai.techraq.com/widget.js" ...></script>
 </body>
 ```
 
@@ -275,7 +275,7 @@ Dashboard → Select Chatbot → Embed & Export Tab
      <!-- Your website content -->
      
      <!-- Paste here -->
-     <script src="http://localhost:3000/widget.js" data-chatbot-id="YOUR_ID" async></script>
+     <script src="https://vyomai.techraq.com/widget.js" data-chatbot-id="YOUR_ID" async></script>
    </body>
    </html>
    ```

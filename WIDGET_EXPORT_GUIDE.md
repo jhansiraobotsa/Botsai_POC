@@ -36,9 +36,9 @@ This page lets you test all 3 embedding methods side-by-side!
 ```html
 <!-- Vyoma AI Popup Widget -->
 <script
-  src="http://localhost:3000/widget.js"
+  src="https://vyomai.techraq.com/widget.js"
   data-chatbot-id="YOUR_CHATBOT_ID"
-  data-api-url="http://192.168.1.31:8006"
+  data-api-url="https://vyomai.techraq.com"
   data-position="bottom-right"
   data-color="#6366f1"
   async
@@ -64,7 +64,7 @@ This page lets you test all 3 embedding methods side-by-side!
 ```html
 <!-- Vyoma AI Iframe Embed -->
 <iframe
-  src="http://localhost:3000/widget.html?id=YOUR_CHATBOT_ID&api=http://192.168.1.31:8006"
+  src="http://localhost:3000/widget.html?id=YOUR_CHATBOT_ID&api=http://49.249.160.198:8006"
   width="400"
   height="600"
   frameborder="0"
@@ -92,7 +92,7 @@ This page lets you test all 3 embedding methods side-by-side!
 <script>
 (function() {
   var iframe = document.createElement('iframe');
-  iframe.src = 'http://localhost:3000/widget.html?id=YOUR_CHATBOT_ID&api=http://192.168.1.31:8006';
+  iframe.src = 'http://localhost:3000/widget.html?id=YOUR_CHATBOT_ID&api=http://49.249.160.198:8006';
   iframe.style.cssText = 'position: fixed; bottom: 20px; right: 20px; width: 400px; height: 600px; border: none; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); z-index: 9999;';
   document.body.appendChild(iframe);
 })();
@@ -167,7 +167,7 @@ From the "Embed & Export" tab in your dashboard, or use the codes above.
 Replace:
 - `YOUR_CHATBOT_ID` → Your actual chatbot ID
 - `http://localhost:3000` → Your production URL (when deploying)
-- `http://192.168.1.31:8006` → Your production API URL
+- `http://49.249.160.198:8006` → Your production API URL
 
 ### **Step 5: Paste Before `</body>`**
 
@@ -182,9 +182,9 @@ Replace:
   <p>Your content here...</p>
 
   <!-- PASTE WIDGET CODE HERE -->
-  <script src="http://localhost:3000/widget.js" 
+  <script src="https://vyomai.techraq.com/widget.js" 
           data-chatbot-id="abc123" 
-          data-api-url="http://192.168.1.31:8006" 
+          data-api-url="https://vyomai.techraq.com" 
           async></script>
 </body>
 </html>
@@ -213,9 +213,9 @@ Replace:
   </main>
 
   <!-- Vyoma AI Widget - Floating Button -->
-  <script src="http://localhost:3000/widget.js"
+  <script src="https://vyomai.techraq.com/widget.js"
           data-chatbot-id="store123"
-          data-api-url="http://192.168.1.31:8006"
+          data-api-url="https://vyomai.techraq.com"
           data-position="bottom-right"
           async></script>
 </body>
@@ -244,7 +244,7 @@ Replace:
 
   <!-- Vyoma AI Widget - Always Visible -->
   <iframe 
-    src="http://localhost:3000/widget.html?id=help123&api=http://192.168.1.31:8006"
+    src="http://localhost:3000/widget.html?id=help123&api=http://49.249.160.198:8006"
     width="400"
     height="600"
     style="position: fixed; bottom: 20px; right: 20px; border: none; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); z-index: 9999;"
@@ -419,8 +419,8 @@ app.add_middleware(
 1. **Replace localhost URLs:**
 ```html
 <!-- Development -->
-src="http://localhost:3000/widget.js"
-data-api-url="http://192.168.1.31:8006"
+src="https://vyomai.techraq.com/widget.js"
+data-api-url="https://vyomai.techraq.com"
 
 <!-- Production -->
 src="https://yourdomain.com/widget.js"
@@ -478,9 +478,9 @@ http://localhost:3000/test-all-embed-methods.html
 
 **Use it:**
 ```html
-<script src="http://localhost:3000/widget.js"
+<script src="https://vyomai.techraq.com/widget.js"
         data-chatbot-id="YOUR_ID"
-        data-api-url="http://192.168.1.31:8006"
+        data-api-url="https://vyomai.techraq.com"
         async></script>
 ```
 

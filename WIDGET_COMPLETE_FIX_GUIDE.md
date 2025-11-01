@@ -34,9 +34,9 @@ There are 2 ways to embed the widget:
 ```html
 <!-- Floating button that opens/closes -->
 <script
-  src="http://localhost:3000/widget.js"
+  src="https://vyomai.techraq.com/widget.js"
   data-chatbot-id="YOUR_CHATBOT_ID"
-  data-api-url="http://192.168.1.31:8006"
+  data-api-url="https://vyomai.techraq.com"
   data-position="bottom-right"
   async
 ></script>
@@ -51,7 +51,7 @@ There are 2 ways to embed the widget:
 #### **Option B: Direct Iframe (Always visible)**
 ```html
 <!-- Chat always visible, no button -->
-<iframe src="http://localhost:3000/widget.html?id=YOUR_ID&api=http://192.168.1.31:8006"
+<iframe src="http://localhost:3000/widget.html?id=YOUR_ID&api=http://49.249.160.198:8006"
         width="400" height="600"></iframe>
 ```
 
@@ -195,14 +195,14 @@ Error: Failed to fetch
 ```
 
 **Solutions:**
-1. ✅ Check if backend is running: `curl http://192.168.1.31:8006`
+1. ✅ Check if backend is running: `curl http://49.249.160.198:8006`
 2. ✅ Enable CORS in FastAPI (see Step 2 above)
 3. ✅ Check API URL in widget code
 4. ✅ Check firewall/network
 
 **Test backend:**
 ```bash
-curl http://192.168.1.31:8006/api/v1/rag/chat \
+curl http://49.249.160.198:8006/api/v1/rag/chat \
   -X POST \
   -H "Content-Type: application/json" \
   -d '{"chatbot_id":"test","query":"hello","session_id":""}'
@@ -253,7 +253,7 @@ Remove authentication from `/api/v1/rag/chat` endpoint (see Step 3 above)
 
 **Console shows:**
 ```
-Access to fetch at 'http://192.168.1.31:8006/api/v1/rag/chat' from origin 'http://localhost:3000' has been blocked by CORS policy
+Access to fetch at 'http://49.249.160.198:8006/api/v1/rag/chat' from origin 'http://localhost:3000' has been blocked by CORS policy
 ```
 
 **Solution:**
@@ -266,10 +266,10 @@ Add CORS middleware to FastAPI (see Step 2 above)
 Before embedding on your website, verify:
 
 ### Backend:
-- [ ] FastAPI is running on http://192.168.1.31:8006
+- [ ] FastAPI is running on http://49.249.160.198:8006
 - [ ] CORS middleware is added
 - [ ] `/api/v1/rag/chat` endpoint works without auth
-- [ ] Can access backend from browser: `http://192.168.1.31:8006`
+- [ ] Can access backend from browser: `http://49.249.160.198:8006`
 
 ### Frontend:
 - [ ] React dev server is running on http://localhost:3000
@@ -336,9 +336,9 @@ Once everything works on the test page:
 
   <!-- Add this before </body> tag -->
   <script
-    src="http://localhost:3000/widget.js"
+    src="https://vyomai.techraq.com/widget.js"
     data-chatbot-id="YOUR_ACTUAL_CHATBOT_ID"
-    data-api-url="http://192.168.1.31:8006"
+    data-api-url="https://vyomai.techraq.com"
     data-position="bottom-right"
     data-color="#6366f1"
     data-button-text="Chat with us"
@@ -351,7 +351,7 @@ Once everything works on the test page:
 **Replace:**
 - `YOUR_ACTUAL_CHATBOT_ID` → Your chatbot ID from database
 - `http://localhost:3000` → Your production frontend URL
-- `http://192.168.1.31:8006` → Your production backend URL
+- `http://49.249.160.198:8006` → Your production backend URL
 
 ---
 
@@ -404,9 +404,9 @@ Look for these specific errors:
 
 **Use this embed code (widget.js for popup behavior):**
 ```html
-<script src="http://localhost:3000/widget.js"
+<script src="https://vyomai.techraq.com/widget.js"
         data-chatbot-id="YOUR_ID"
-        data-api-url="http://192.168.1.31:8006"
+        data-api-url="https://vyomai.techraq.com"
         async></script>
 ```
 

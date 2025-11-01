@@ -180,7 +180,7 @@ async def rag_chat(request: ChatRequest, db: Session = Depends(get_db)):
 
 ### Test 1: Direct Widget URL
 ```
-http://localhost:3000/widget.html?id=YOUR_CHATBOT_ID&api=http://192.168.1.31:8006
+http://localhost:3000/widget.html?id=YOUR_CHATBOT_ID&api=http://49.249.160.198:8006
 ```
 - Should load without errors
 - Should show chatbot name
@@ -195,9 +195,9 @@ http://localhost:3000/widget.html?id=YOUR_CHATBOT_ID&api=http://192.168.1.31:800
 <body>
   <h1>Test Page</h1>
   <script
-    src="http://localhost:3000/widget.js"
+    src="https://vyomai.techraq.com/widget.js"
     data-chatbot-id="YOUR_CHATBOT_ID"
-    data-api-url="http://192.168.1.31:8006"
+    data-api-url="https://vyomai.techraq.com"
     async
   ></script>
 </body>
@@ -212,8 +212,8 @@ Open F12 console, you should see:
 ```
 ✅ Vyoma AI Widget initialized
 ✅ Chatbot ID: your_id
-✅ API URL: http://192.168.1.31:8006
-✅ Sending message to: http://192.168.1.31:8006/api/v1/rag/chat
+✅ API URL: http://49.249.160.198:8006
+✅ Sending message to: http://49.249.160.198:8006/api/v1/rag/chat
 ✅ Response status: 200
 ✅ Response data: {answer: "...", session_id: "..."}
 ```
@@ -282,7 +282,7 @@ async def widget_chat_proxy(request: ChatRequest, db: Session = Depends(get_db))
 
 1. **Is your backend running?**
    ```bash
-   curl http://192.168.1.31:8006/api/v1/rag/chat
+   curl http://49.249.160.198:8006/api/v1/rag/chat
    ```
 
 2. **Is CORS configured?**
