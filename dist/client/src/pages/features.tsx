@@ -111,7 +111,7 @@ export default function FeaturesPage() {
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-primary/10 via-secondary/10 to-primary/5 dark:from-primary/20 dark:via-secondary/20 dark:to-primary/10 py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <Badge className="mb-4">Powered by TechRaq</Badge>
+          <Badge className="mb-4">Powered by TechRAQ</Badge>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 dark:text-white mb-6">
             Features That Drive Results
           </h1>
@@ -142,7 +142,7 @@ export default function FeaturesPage() {
               Powerful Features, Simple Interface
             </h2>
             <p className="text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
-              Built for developers, designed for everyone. No coding required.
+              Built for everyone, No coding required.
             </p>
           </div>
 

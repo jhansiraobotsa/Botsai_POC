@@ -227,7 +227,7 @@
     <div class="alert">
       <h3>⚠️ Before Testing</h3>
       <p><strong>Important:</strong> Replace <code>YOUR_CHATBOT_ID</code> in the code below with your actual chatbot ID!</p>
-      <p>Make sure your FastAPI backend is running on <code>https://vyomai.techraq.com</code> with CORS enabled.</p>
+      <p>Make sure your FastAPI backend is running on <code>http://192.168.1.31:8006</code> with CORS enabled.</p>
     </div>
 
     <div class="methods-grid">
@@ -252,9 +252,9 @@
         <h4 style="margin-top: 20px; margin-bottom: 10px; color: #1e293b;">Embed Code:</h4>
         <div class="code-box">&lt;!-- Vyoma AI Popup Widget --&gt;
 &lt;script
-  src="https://vyomai.techraq.com/widget.js"
+  src="http://localhost:3000/widget.js"
   data-chatbot-id="YOUR_CHATBOT_ID"
-  data-api-url="https://vyomai.techraq.com"
+  data-api-url="http://192.168.1.31:8006"
   data-position="bottom-right"
   data-color="#6366f1"
   async
@@ -288,7 +288,7 @@
         <h4 style="margin-top: 20px; margin-bottom: 10px; color: #1e293b;">Embed Code:</h4>
         <div class="code-box">&lt;!-- Vyoma AI Iframe Embed --&gt;
 &lt;iframe
-  src="http://localhost:3000/widget.html?id=YOUR_CHATBOT_ID&api=https://vyomai.techraq.com"
+  src="http://localhost:3000/widget.html?id=YOUR_CHATBOT_ID&api=http://192.168.1.31:8006"
   width="400"
   height="600"
   frameborder="0"
@@ -325,7 +325,7 @@
 &lt;script&gt;
 (function() {
   var iframe = document.createElement('iframe');
-  iframe.src = 'http://localhost:3000/widget.html?id=YOUR_CHATBOT_ID&api=https://vyomai.techraq.com';
+  iframe.src = 'http://localhost:3000/widget.html?id=YOUR_CHATBOT_ID&api=http://192.168.1.31:8006';
   iframe.style.cssText = 'position: fixed; bottom: 20px; right: 20px; width: 400px; height: 600px; border: none; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); z-index: 9999;';
   document.body.appendChild(iframe);
 })();
@@ -391,7 +391,7 @@
 
   <script>
     const CHATBOT_ID = 'YOUR_CHATBOT_ID'; // 🚨 REPLACE THIS!
-    const API_URL = 'https://vyomai.techraq.com';
+    const API_URL = 'http://192.168.1.31:8006';
 
     function copyCode(type) {
       let code = '';
@@ -399,7 +399,7 @@
         case 'popup':
           code = `<!-- Vyoma AI Popup Widget -->
 <script
-  src="https://vyomai.techraq.com/widget.js"
+  src="http://localhost:3000/widget.js"
   data-chatbot-id="${CHATBOT_ID}"
   data-api-url="${API_URL}"
   data-position="bottom-right"

@@ -362,7 +362,7 @@ function BasicInformationStep({ form, userPlan }: { form: any; userPlan: string 
         name="name"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Chatbot Name *</FormLabel>
+            <FormLabel className="font-bold">Chatbot Name <span className="text-red-500"> *</span></FormLabel>
             <FormControl>
               <Input 
                 placeholder="e.g., Customer Support Bot" 
@@ -380,11 +380,11 @@ function BasicInformationStep({ form, userPlan }: { form: any; userPlan: string 
         name="industry"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>What industry best describes your business? *</FormLabel>
+            <FormLabel className="font-bold">What industry best describes your business? <span className="text-red-500"> *</span></FormLabel>
             <Select onValueChange={field.onChange} value={field.value}>
               <FormControl>
-                <SelectTrigger data-testid="select-industry">
-                  <SelectValue placeholder="Select your industry" />
+                <SelectTrigger data-testid="select-industry" className="font-medium">
+                  <SelectValue placeholder="Select your industry" className="font-medium"/>
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
@@ -405,7 +405,7 @@ function BasicInformationStep({ form, userPlan }: { form: any; userPlan: string 
         name="purpose"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>What is your primary goal for this chatbot? *</FormLabel>
+            <FormLabel className="font-extrabold">What is your primary goal for this chatbot? <span className="text-red-500"> *</span></FormLabel>
             {(userPlan === "free" || userPlan === "basic") && (
               <Alert className="mb-4">
                 <AlertDescription>
@@ -418,8 +418,9 @@ function BasicInformationStep({ form, userPlan }: { form: any; userPlan: string 
               <RadioGroup
                 onValueChange={field.onChange}
                 value={field.value}
-                className="space-y-3"
+                className="space-y-3 "
                 data-testid="radio-purpose"
+                
               >
                 {PURPOSE_OPTIONS.map((purpose) => {
                   const isDisabled = (userPlan === "free" || userPlan === "basic") && purpose.isPremium;
@@ -429,6 +430,7 @@ function BasicInformationStep({ form, userPlan }: { form: any; userPlan: string 
                         value={purpose.value} 
                         id={purpose.value}
                         disabled={isDisabled}
+                        
                       />
                       <Label 
                         htmlFor={purpose.value}
@@ -462,9 +464,9 @@ function IndustryQuestionsStep({ form }: { form: any }) {
         name="tone"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>What tone should your chatbot use? *</FormLabel>
+            <FormLabel className="font-bold">What tone should your chatbot use? <span className="text-red-500"> *</span></FormLabel>
             <Select onValueChange={field.onChange} value={field.value}>
-              <FormControl>
+              <FormControl >
                 <SelectTrigger data-testid="select-tone">
                   <SelectValue placeholder="Select tone" />
                 </SelectTrigger>
@@ -487,7 +489,7 @@ function IndustryQuestionsStep({ form }: { form: any }) {
         name="businessGoal"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>What is your main business goal? *</FormLabel>
+            <FormLabel className="font-bold">What is your main business goal? <span className="text-red-500"> *</span></FormLabel>
             <FormControl>
               <Textarea
                 placeholder="e.g., Increase customer satisfaction, reduce support tickets, generate leads..."
@@ -505,7 +507,7 @@ function IndustryQuestionsStep({ form }: { form: any }) {
         name="targetAudience"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Who is your target audience? *</FormLabel>
+            <FormLabel className="font-bold ">Who is your target audience?  <span className="text-red-500"> *</span></FormLabel>
             <FormControl>
               <Textarea
                 placeholder="e.g., Small business owners, tech-savvy millennials, senior citizens..."
@@ -529,7 +531,7 @@ function CustomizationStep({ form }: { form: any }) {
         name="keyFeatures"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Key features or services to highlight *</FormLabel>
+            <FormLabel className="font-extrabold">Key features or services to highlight <span className="text-red-500"> *</span></FormLabel>
             <FormControl>
               <Textarea
                 placeholder="e.g., 24/7 support, product recommendations, booking system..."
@@ -547,7 +549,7 @@ function CustomizationStep({ form }: { form: any }) {
         name="brandColor"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Brand Color</FormLabel>
+            <FormLabel className="font-extrabold">Brand Color</FormLabel>
             <FormControl>
               <div className="flex items-center space-x-3">
                 <Input
@@ -569,7 +571,7 @@ function CustomizationStep({ form }: { form: any }) {
         name="widgetPosition"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Widget Position</FormLabel>
+            <FormLabel className="font-extrabold">Widget Position</FormLabel>
             <Select onValueChange={field.onChange} value={field.value}>
               <FormControl>
                 <SelectTrigger data-testid="select-widget-position">
@@ -601,42 +603,42 @@ function ReviewStep({ form }: { form: any }) {
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <div>
-            <span className="font-medium text-slate-700">Name:</span>
+            <span className="font-extrabold text-slate-700">Name:</span>
             <p className="text-slate-600">{values.name || "Not specified"}</p>
           </div>
           
           <div>
-            <span className="font-medium text-slate-700">Industry:</span>
+            <span className="font-extrabold text-slate-700">Industry:</span>
             <p className="text-slate-600">{values.industry || "Not specified"}</p>
           </div>
           
           <div>
-            <span className="font-medium text-slate-700">Purpose:</span>
+            <span className="font-extrabold text-slate-700">Purpose:</span>
             <p className="text-slate-600">{values.purpose || "Not specified"}</p>
           </div>
           
           <div>
-            <span className="font-medium text-slate-700">Tone:</span>
+            <span className="font-extrabold text-slate-700">Tone:</span>
             <p className="text-slate-600">{values.tone || "Not specified"}</p>
           </div>
           
           <div className="md:col-span-2">
-            <span className="font-medium text-slate-700">Business Goal:</span>
+            <span className="font-extrabold text-slate-700">Business Goal:</span>
             <p className="text-slate-600">{values.businessGoal || "Not specified"}</p>
           </div>
           
           <div className="md:col-span-2">
-            <span className="font-medium text-slate-700">Target Audience:</span>
+            <span className="font-extrabold text-slate-700">Target Audience:</span>
             <p className="text-slate-600">{values.targetAudience || "Not specified"}</p>
           </div>
           
           <div className="md:col-span-2">
-            <span className="font-medium text-slate-700">Key Features:</span>
+            <span className="font-extrabold text-slate-700">Key Features:</span>
             <p className="text-slate-600">{values.keyFeatures || "Not specified"}</p>
           </div>
           
           <div>
-            <span className="font-medium text-slate-700">Brand Color:</span>
+            <span className="font-extrabold text-slate-700">Brand Color:</span>
             <div className="flex items-center space-x-2">
               <div 
                 className="w-6 h-6 rounded border"
@@ -647,7 +649,7 @@ function ReviewStep({ form }: { form: any }) {
           </div>
           
           <div>
-            <span className="font-medium text-slate-700">Widget Position:</span>
+            <span className="font-extrabold text-slate-700">Widget Position:</span>
             <p className="text-slate-600">{values.widgetPosition || "bottom-right"}</p>
           </div>
         </div>

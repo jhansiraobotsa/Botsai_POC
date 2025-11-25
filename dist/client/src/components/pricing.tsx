@@ -33,7 +33,7 @@ export default function Pricing() {
     },
     {
       name: "Professional",
-      price: "$49",
+      price: "Contact for Quote",
       period: "/month",
       description: "Complete AI agent orchestration platform",
       features: [
@@ -54,7 +54,7 @@ export default function Pricing() {
     },
     {
       name: "Enterprise",
-      price: "$199",
+      price: "Contact for Quote",
       period: "/month",
       description: "Enterprise-scale AI transformation solution",
       features: [
@@ -104,8 +104,8 @@ export default function Pricing() {
               <div className="text-center">
                 <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">{plan.name}</h3>
                 <div className="mb-4">
-                  <span className="text-4xl font-bold text-slate-900 dark:text-white">{plan.price}</span>
-                  <span className="text-slate-600 dark:text-slate-400">{plan.period}</span>
+                  <span className="text-xl font-bold text-slate-900 dark:text-white">{plan.price}</span>
+                  {/* <span className="text-slate-600 dark:text-slate-400">{plan.period}</span> */}
                 </div>
                 <p className="text-slate-600 dark:text-slate-300 mb-6">{plan.description}</p>
               </div>

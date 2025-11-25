@@ -16,13 +16,20 @@
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
       height: 100vh;
       overflow: hidden;
+      --header-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --header-color: #667eea;
+      --user-bubble-color: #6366f1; 
+      --font-size: 14px;
+      --border-radius: 8px;
+      --show-avatar: flex;
+      --show-powered-by: block;
     }
 
     .widget-container {
       display: flex;
       flex-direction: column;
       height: 100vh;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: var(--header-bg);
     }
 
     .widget-header {
@@ -40,14 +47,14 @@
       height: 45px;
       background: white;
       border-radius: 50%;
-      display: flex;
+      display: var(--show-avatar);
       align-items: center;
-      justify-center;
+      justify-content: center;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
 
     .widget-avatar i {
-      color: #667eea;
+      color: var(--header-color);
       font-size: 22px;
     }
 
@@ -57,7 +64,7 @@
     }
 
     .widget-info h3 {
-      font-size: 18px;
+      font-size: calc(var(--font-size) + 2px);
       font-weight: 600;
       margin-bottom: 3px;
     }
@@ -142,10 +149,11 @@
     .message-bubble {
       max-width: 75%;
       padding: 12px 16px;
-      border-radius: 18px;
+      border-radius: var(--border-radius);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       word-wrap: break-word;
       line-height: 1.6;
+      font-size: var(--font-size);
     }
 
     .message-bot .message-bubble {
@@ -155,12 +163,11 @@
     }
 
     .message-user .message-bubble {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: var(--user-bubble-color, #6366f1); /* Fallback to default */
       color: white;
       border-bottom-right-radius: 4px;
     }
 
-    /* Markdown styling in messages */
     .message-bubble strong {
       font-weight: 700;
       color: inherit;
@@ -236,7 +243,7 @@
       gap: 4px;
       padding: 12px 16px;
       background: white;
-      border-radius: 18px;
+      border-radius: var(--border-radius);
       width: fit-content;
       border-bottom-left-radius: 4px;
     }
@@ -280,20 +287,20 @@
       padding: 12px 16px;
       border: 2px solid #e2e8f0;
       border-radius: 24px;
-      font-size: 14px;
+      font-size: var(--font-size);
       outline: none;
       transition: all 0.2s;
     }
 
     .widget-input:focus {
-      border-color: #667eea;
+      border-color: var(--header-color);
       box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     }
 
     .send-button {
       width: 44px;
       height: 44px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: var(--header-color);
       border: none;
       border-radius: 50%;
       color: white;
@@ -324,6 +331,7 @@
       font-size: 11px;
       color: rgba(255, 255, 255, 0.7);
       background: rgba(0, 0, 0, 0.1);
+      display: var(--show-powered-by);
     }
 
     .widget-footer a {
@@ -336,7 +344,6 @@
       text-decoration: underline;
     }
 
-    /* Scrollbar Styling */
     .widget-messages::-webkit-scrollbar {
       width: 6px;
     }
@@ -383,7 +390,7 @@
   <div class="widget-container" id="chatWidget">
     <!-- Header -->
     <div class="widget-header">
-      <div class="widget-avatar">
+      <div class="widget-avatar" id="widgetAvatar">
         <i class="fas fa-robot"></i>
       </div>
       <div class="widget-info">
@@ -407,22 +414,14 @@
     <div class="widget-messages" id="messagesContainer">
       <div class="message message-bot">
         <div class="message-bubble">
-          <div>Hello! 👋 I'm your AI assistant. How can I help you today?</div>
+          <div id="welcomeMessage">Hello! 👋 I'm your AI assistant. How can I help you today?</div>
           <span class="message-time">Just now</span>
         </div>
       </div>
       
       <!-- Quick Replies -->
       <div class="quick-replies" id="quickReplies">
-        <button class="quick-reply-btn" onclick="sendQuickReply('Tell me about your services')">
-          💼 Services
-        </button>
-        <button class="quick-reply-btn" onclick="sendQuickReply('How can I contact you?')">
-          📞 Contact
-        </button>
-        <button class="quick-reply-btn" onclick="sendQuickReply('Help me get started')">
-          🚀 Get Started
-        </button>
+        <!-- Dynamic quick replies will be inserted here -->
       </div>
     </div>
 
@@ -443,63 +442,133 @@
     </div>
 
     <!-- Footer -->
-    <div class="widget-footer">
+    <div class="widget-footer" id="widgetFooter">
       Powered by <a href="https://vyomai.techraq.com/" target="_blank">Vyoma.ai</a>
     </div>
   </div>
 
   <script>
-    // Get chatbot ID from URL parameters
+    // Get parameters from URL
     const urlParams = new URLSearchParams(window.location.search);
     const chatbotId = urlParams.get('id') || 'demo';
-    const apiUrl = urlParams.get('api') || 'https://vyomai.techraq.com'; // Updated to match your backend
+    const apiUrl = urlParams.get('api') || 'https://vyomai.techraq.com';
     
+    // Get ALL customization parameters from URL
+    const agentName = urlParams.get('agent_name') || 'Vyoma AI';
+    const headerColor = urlParams.get('header_color') || '#3B82F6';
+    const userBubbleColor = urlParams.get('user_bubble_color') || '#6366f1';
+    const fontSize = urlParams.get('font_size') || '14';
+    const borderRadius = urlParams.get('border_radius') || '8';
+    const showAvatar = urlParams.get('show_avatar') !== 'false';
+    const welcomeMessage = urlParams.get('welcome_message') || 'Hello! 👋 I\'m your AI assistant. How can I help you today?';
+    const inputPlaceholder = urlParams.get('input_placeholder') || 'Type your message...';
+    const suggestedQuestions = JSON.parse(urlParams.get('suggested_questions') || '[]');
+    const quickReplies = JSON.parse(urlParams.get('quick_replies') || '[]');
+    const typingIndicator = urlParams.get('typing_indicator') !== 'false';
+    const showPoweredBy = urlParams.get('show_powered_by') !== 'false';
+    const responseStyle = urlParams.get('response_style') || '';
+    const responseTone = urlParams.get('response_tone') || '';
+    const fallbackMessage = urlParams.get('fallback_message') || 'I\'m not sure I understand. Could you please rephrase your question?';
+    const chatLanguage = urlParams.get('chat_language') || 'English';
+
     let sessionId = '';
     const messagesContainer = document.getElementById('messagesContainer');
     const messageInput = document.getElementById('messageInput');
     const sendButton = document.getElementById('sendButton');
 
-    // Load chatbot configuration
-    async function loadChatbotConfig() {
-      try {
-        // Try to load config, but don't fail if it doesn't work
-        const response = await fetch(`${apiUrl}/api/v1/chatbot/${chatbotId}`);
-        if (response.ok) {
-          const data = await response.json();
-          
-          if (data.chatbot_name || data.name) {
-            document.getElementById('widgetTitle').textContent = data.chatbot_name || data.name;
-          }
-          
-          // Apply brand color if available
-          const color = data.user_steps_details?.brandColor || data.brand_color || data.brandColor;
-          if (color) {
-            document.querySelector('.widget-container').style.background = 
-              `linear-gradient(135deg, ${color} 0%, ${adjustColor(color, -20)} 100%)`;
-          }
-        }
-      } catch (error) {
-        console.warn('Could not load chatbot config, using defaults:', error);
+    // Apply ALL customization on load
+    function applyCustomization() {
+      console.log('Applying customization:', {
+        agentName,
+        headerColor,
+        userBubbleColor,
+        fontSize,
+        borderRadius,
+        showAvatar,
+        welcomeMessage,
+        inputPlaceholder,
+        suggestedQuestions,
+        quickReplies,
+        typingIndicator,
+        showPoweredBy,
+        responseStyle,
+        responseTone
+      });
+
+      // Set CSS custom properties - FIXED: Ensure proper color format
+      document.documentElement.style.setProperty('--header-color', validateColor(headerColor));
+      document.documentElement.style.setProperty('--user-bubble-color', validateColor(userBubbleColor));
+      document.documentElement.style.setProperty('--font-size', `${fontSize}px`);
+      document.documentElement.style.setProperty('--border-radius', `${borderRadius}px`);
+      document.documentElement.style.setProperty('--show-avatar', showAvatar ? 'flex' : 'none');
+      document.documentElement.style.setProperty('--show-powered-by', showPoweredBy ? 'block' : 'none');
+
+      // Set header background gradient with validated colors
+      const validHeaderColor = validateColor(headerColor);
+      document.querySelector('.widget-container').style.background = 
+        `linear-gradient(135deg, ${validHeaderColor} 0%, ${adjustColor(validHeaderColor, -20)} 100%)`;
+
+      // Set agent name
+      document.getElementById('widgetTitle').textContent = agentName;
+
+      // Set welcome message
+      document.getElementById('welcomeMessage').textContent = welcomeMessage;
+
+      // Set input placeholder
+      messageInput.placeholder = inputPlaceholder;
+
+      // Populate quick replies
+      const quickRepliesContainer = document.getElementById('quickReplies');
+      quickRepliesContainer.innerHTML = '';
+
+      // Use quick_replies if available, otherwise use suggested_questions
+      const repliesToShow = quickReplies.length > 0 ? quickReplies : suggestedQuestions;
+      
+      if (repliesToShow.length > 0) {
+        repliesToShow.forEach(reply => {
+          const button = document.createElement('button');
+          button.className = 'quick-reply-btn';
+          button.textContent = reply;
+          button.onclick = () => sendQuickReply(reply);
+          quickRepliesContainer.appendChild(button);
+        });
+      } else {
+        quickRepliesContainer.style.display = 'none';
       }
+
+      console.log('Customization applied successfully');
+      console.log('User Bubble Color Applied:', validateColor(userBubbleColor));
+    }
+
+    // Utility function to validate and format color
+    function validateColor(color) {
+      if (!color || color.trim() === '') return '#6366f1';
+      
+      // If it's already a valid hex color, return it
+      if (/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(color)) {
+        return color;
+      }
+      
+      // If it's a named color or invalid, return default
+      return '#6366f1';
     }
 
     // Utility function to adjust color brightness
     function adjustColor(color, percent) {
-      const num = parseInt(color.replace("#",""), 16);
+      const validColor = validateColor(color);
+      const num = parseInt(validColor.replace("#",""), 16);
       const amt = Math.round(2.55 * percent);
-      const R = (num >> 16) + amt;
-      const G = (num >> 8 & 0x00FF) + amt;
-      const B = (num & 0x0000FF) + amt;
-      return "#" + (0x1000000 + (R<255?R<1?0:R:255)*0x10000 +
-        (G<255?G<1?0:G:255)*0x100 + (B<255?B<1?0:B:255))
-        .toString(16).slice(1);
+      const R = Math.min(255, Math.max(0, (num >> 16) + amt));
+      const G = Math.min(255, Math.max(0, (num >> 8 & 0x00FF) + amt));
+      const B = Math.min(255, Math.max(0, (num & 0x0000FF) + amt));
+      return "#" + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
     }
 
     function addMessage(content, sender = 'bot') {
-      // Remove quick replies after first message
+      // Remove quick replies after first user message
       const quickReplies = document.getElementById('quickReplies');
       if (quickReplies && sender === 'user') {
-        quickReplies.remove();
+        quickReplies.style.display = 'none';
       }
 
       const messageDiv = document.createElement('div');
@@ -510,27 +579,13 @@
         minute: '2-digit' 
       });
       
-      // For bot messages, parse markdown-like formatting
+      // Format message content
       let formattedContent = content;
       if (sender === 'bot') {
-        // Convert **bold** to <strong>
         formattedContent = formattedContent.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-        // Convert *italic* to <em>
         formattedContent = formattedContent.replace(/\*(.+?)\*/g, '<em>$1</em>');
-        // Convert `code` to <code>
         formattedContent = formattedContent.replace(/`(.+?)`/g, '<code>$1</code>');
-        // Convert line breaks to <br>
         formattedContent = formattedContent.replace(/\n/g, '<br>');
-        // Convert numbered lists (1. 2. 3.)
-        formattedContent = formattedContent.replace(/(\d+\.\s+.+?)(<br>|$)/g, '<li>$1</li>');
-        if (formattedContent.includes('<li>')) {
-          formattedContent = '<ol>' + formattedContent.replace(/(<li>.+?<\/li>)/g, '$1') + '</ol>';
-        }
-        // Convert bullet points (- or •)
-        formattedContent = formattedContent.replace(/[-•]\s+(.+?)(<br>|$)/g, '<li>$1</li>');
-        if (formattedContent.includes('<li>') && !formattedContent.includes('<ol>')) {
-          formattedContent = '<ul>' + formattedContent.replace(/(<li>.+?<\/li>)/g, '$1') + '</ul>';
-        }
       }
       
       messageDiv.innerHTML = `
@@ -545,6 +600,8 @@
     }
 
     function showTypingIndicator() {
+      if (!typingIndicator) return;
+      
       const typingDiv = document.createElement('div');
       typingDiv.className = 'message message-bot';
       typingDiv.id = 'typing-indicator';
@@ -579,9 +636,6 @@
       showTypingIndicator();
 
       try {
-        console.log('Sending message to:', `${apiUrl}/api/v1/rag/chat`);
-        console.log('Payload:', { chatbot_id: chatbotId, query: message, session_id: sessionId });
-        
         const response = await fetch(`${apiUrl}/api/v1/rag/chat`, {
           method: 'POST',
           headers: {
@@ -595,73 +649,26 @@
           })
         });
 
-        console.log('Response status:', response.status);
-        
         if (!response.ok) {
-          const errorText = await response.text();
-          console.error('API Error Response:', errorText);
-          
-          // Special handling for 401 authentication error
-          if (response.status === 401) {
-            throw new Error('Authentication required. Please check your backend configuration - the /rag/chat endpoint should allow public access for widgets.');
-          }
-          
-          throw new Error(`API returned ${response.status}: ${errorText}`);
+          throw new Error(`API returned ${response.status}`);
         }
 
         const data = await response.json();
-        console.log('Response data:', data);
         
         // Update session ID if this is the first message
         if (!sessionId && data.session_id) {
           sessionId = data.session_id;
-          console.log('Session ID updated:', sessionId);
         }
 
         removeTypingIndicator();
         
-        // Handle different response formats
-        const botResponse = data.answer || data.response || data.message || 'I received your message but couldn\'t generate a response.';
+        // Use fallback message if no response
+        const botResponse = data.answer || data.response || data.message || fallbackMessage;
         addMessage(botResponse, 'bot');
       } catch (error) {
         console.error('Error sending message:', error);
-        console.error('Error details:', {
-          message: error.message,
-          stack: error.stack,
-          apiUrl: apiUrl,
-          chatbotId: chatbotId
-        });
         removeTypingIndicator();
-        
-        // Better error messages based on error type
-        let errorMessage = 'I\'m having trouble connecting to the server.';
-        
-        if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-          errorMessage = `
-            <strong>Connection Error</strong><br><br>
-            Cannot reach the server at:<br>
-            <code>${apiUrl}</code><br><br>
-            <strong>Possible causes:</strong><br>
-            • Backend server is not running<br>
-            • CORS is not enabled on backend<br>
-            • Wrong API URL<br>
-            • Network/firewall blocking connection<br><br>
-            <strong>To fix:</strong><br>
-            1. Make sure FastAPI is running<br>
-            2. Check API URL is correct<br>
-            3. Enable CORS in your backend
-          `;
-        } else if (error.message.includes('Authentication required')) {
-          errorMessage = `
-            <strong>Authentication Error</strong><br><br>
-            The chat endpoint requires authentication.<br><br>
-            <strong>To fix:</strong> Remove authentication from <code>/api/v1/rag/chat</code> endpoint in your FastAPI backend.
-          `;
-        } else {
-          errorMessage = `<strong>Error:</strong> ${error.message}`;
-        }
-        
-        addMessage(errorMessage, 'bot');
+        addMessage(fallbackMessage, 'bot');
       } finally {
         sendButton.disabled = false;
         messageInput.focus();
@@ -681,97 +688,34 @@
 
     // Widget control functions
     function minimizeWidget() {
-      // If embedded in iframe (via widget.js), send message to parent
       if (window.parent !== window) {
         window.parent.postMessage({ type: 'vyoma-minimize' }, '*');
-      } else {
-        // If standalone, show minimized button
-        showMinimizedButton();
       }
     }
 
     function closeWidget() {
-      // If embedded in iframe (via widget.js), send message to parent
       if (window.parent !== window) {
         window.parent.postMessage({ type: 'vyoma-close' }, '*');
-      } else {
-        // If standalone, show minimized button
-        if (window.opener) {
-          window.close();
-        } else {
-          showMinimizedButton();
-        }
       }
     }
 
-    function showMinimizedButton() {
-      // Hide the main widget
-      document.getElementById('chatWidget').style.display = 'none';
-      
-      // Create or show minimized button
-      let minimizedBtn = document.getElementById('minimized-widget-btn');
-      if (!minimizedBtn) {
-        minimizedBtn = document.createElement('button');
-        minimizedBtn.id = 'minimized-widget-btn';
-        minimizedBtn.innerHTML = '<i class="fas fa-comments"></i>';
-        minimizedBtn.onclick = restoreWidget;
-        minimizedBtn.title = 'Open Chat';
-        
-        // Style the button
-        minimizedBtn.style.cssText = `
-          position: fixed;
-          bottom: 20px;
-          right: 20px;
-          width: 60px;
-          height: 60px;
-          border-radius: 50%;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
-          border: none;
-          box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 24px;
-          z-index: 999999;
-          transition: transform 0.3s;
-          animation: pulse 2s infinite;
-        `;
-        
-        minimizedBtn.onmouseenter = function() {
-          this.style.transform = 'scale(1.1)';
-        };
-        
-        minimizedBtn.onmouseleave = function() {
-          this.style.transform = 'scale(1)';
-        };
-        
-        document.body.appendChild(minimizedBtn);
-      } else {
-        minimizedBtn.style.display = 'flex';
-      }
-    }
-
-    function restoreWidget() {
-      const widget = document.getElementById('chatWidget');
-      const minimizedBtn = document.getElementById('minimized-widget-btn');
-      
-      widget.style.display = 'flex';
-      if (minimizedBtn) {
-        minimizedBtn.style.display = 'none';
-      }
+    // Function to update user bubble color dynamically (if needed later)
+    function updateUserBubbleColor(newColor) {
+      const validColor = validateColor(newColor);
+      document.documentElement.style.setProperty('--user-bubble-color', validColor);
+      console.log('User bubble color updated to:', validColor);
     }
 
     // Initialize
-    loadChatbotConfig();
+    applyCustomization();
     messageInput.focus();
     
-    // Log that widget is ready
-    console.log('Vyoma AI Widget initialized');
-    console.log('Chatbot ID:', chatbotId);
-    console.log('API URL:', apiUrl);
+    console.log('Vyoma AI Widget initialized with customization');
+    console.log('Agent Name:', agentName);
+    console.log('Header Color:', headerColor);
+    console.log('User Bubble Color:', userBubbleColor);
+    console.log('Quick Replies:', quickReplies);
+    console.log('Suggested Questions:', suggestedQuestions);
   </script>
 </body>
 </html>
-

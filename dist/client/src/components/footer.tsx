@@ -11,7 +11,7 @@ export default function Footer() {
               <span className="text-xl font-bold">Vyoma.ai</span>
             </div>
             <p className="text-slate-400 mb-4">
-              Create intelligent AI chatbots for any industry. Powered by TechRaq. No coding required.
+              Create intelligent AI chatbots for any industry. Powered by TechRAQ. No coding required.
             </p>
             <div className="flex space-x-4">
               <a href="https://twitter.com/techraq" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-white transition-colors">
@@ -85,7 +85,7 @@ export default function Footer() {
               </li>
               <li>
                 <a href="https://techraq.com" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
-                  TechRaq.com
+                  TechRAQ.com
                 </a>
               </li>
             </ul>
@@ -125,7 +125,7 @@ export default function Footer() {
         
         <div className="border-t border-slate-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-slate-400 text-sm">
-            &copy; 2024 Vyoma.ai by TechRaq. All rights reserved.
+            &copy; 2024 Vyoma.ai by TechRAQ. All rights reserved.
           </p>
           <div className="flex flex-wrap justify-center gap-4 md:gap-6 mt-4 md:mt-0">
             <a href="/privacy" className="text-slate-400 hover:text-white text-sm transition-colors">

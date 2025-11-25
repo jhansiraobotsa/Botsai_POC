@@ -170,7 +170,7 @@ export default function DatabaseAgentCreate() {
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-slate-700 dark:text-slate-300">Agent Name *</FormLabel>
+                          <FormLabel className="text-slate-700 dark:text-slate-300 font-extrabold">Agent Name <span className="text-red-500"> *</span></FormLabel>
                           <FormControl>
                             <Input
                               placeholder="My Database Assistant"
@@ -188,7 +188,7 @@ export default function DatabaseAgentCreate() {
                       name="description"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-slate-700 dark:text-slate-300">Description *</FormLabel>
+                          <FormLabel className="text-slate-700 dark:text-slate-300 font-extrabold">Description <span className="text-red-500"> *</span></FormLabel>
                           <FormControl>
                             <Textarea
                               placeholder="Describe what this agent will help users with..."
@@ -209,7 +209,7 @@ export default function DatabaseAgentCreate() {
                       name="databaseType"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-slate-700 dark:text-slate-300">Database Type *</FormLabel>
+                          <FormLabel className="text-slate-700 dark:text-slate-300 font-extrabold">Database Type <span className="text-red-500"> *</span></FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger className="dark:bg-slate-900 dark:border-slate-600">
@@ -237,7 +237,7 @@ export default function DatabaseAgentCreate() {
                       name="connectionString"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-slate-700 dark:text-slate-300">Connection String *</FormLabel>
+                          <FormLabel className="text-slate-700 dark:text-slate-300 font-extrabold">Connection String <span className="text-red-500"> *</span></FormLabel>
                           <FormControl>
                             <Input
                               type="password"
@@ -259,7 +259,7 @@ export default function DatabaseAgentCreate() {
                       name="schema"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-slate-700 dark:text-slate-300">Schema (Optional)</FormLabel>
+                          <FormLabel className="text-slate-700 dark:text-slate-300 font-extrabold">Schema (Optional)</FormLabel>
                           <FormControl>
                             <Input
                               placeholder="public"
@@ -303,7 +303,7 @@ export default function DatabaseAgentCreate() {
                       name="llmProvider"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-slate-700 dark:text-slate-300">LLM Provider *</FormLabel>
+                          <FormLabel className="text-slate-700 dark:text-slate-300 font-extrabold">LLM Provider <span className="text-red-500"> *</span></FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger className="dark:bg-slate-900 dark:border-slate-600">
@@ -328,7 +328,7 @@ export default function DatabaseAgentCreate() {
                       name="llmModel"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-slate-700 dark:text-slate-300">Model *</FormLabel>
+                          <FormLabel className="text-slate-700 dark:text-slate-300 font-extrabold">Model <span className="text-red-500"> *</span></FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger className="dark:bg-slate-900 dark:border-slate-600">
@@ -353,7 +353,7 @@ export default function DatabaseAgentCreate() {
                       name="apiKey"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-slate-700 dark:text-slate-300">API Key *</FormLabel>
+                          <FormLabel className="text-slate-700 dark:text-slate-300 font-extrabold">API Key <span className="text-red-500"> *</span></FormLabel>
                           <FormControl>
                             <Input
                               type="password"
@@ -375,7 +375,7 @@ export default function DatabaseAgentCreate() {
                       name="temperature"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-slate-700 dark:text-slate-300">
+                          <FormLabel className="text-slate-700 dark:text-slate-300 font-extrabold">
                             Temperature: {field.value}
                           </FormLabel>
                           <FormControl>
@@ -405,7 +405,7 @@ export default function DatabaseAgentCreate() {
                       name="maxQueries"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-slate-700 dark:text-slate-300">Max Queries per Session</FormLabel>
+                          <FormLabel className="text-slate-700 dark:text-slate-300 font-extrabold">Max Queries per Session</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
@@ -429,7 +429,7 @@ export default function DatabaseAgentCreate() {
                       name="allowedTables"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-slate-700 dark:text-slate-300">Allowed Tables (Optional)</FormLabel>
+                          <FormLabel className="text-slate-700 dark:text-slate-300 font-extrabold">Allowed Tables (Optional)</FormLabel>
                           <FormControl>
                             <Textarea
                               placeholder="users, products, orders (comma-separated)"
@@ -451,7 +451,7 @@ export default function DatabaseAgentCreate() {
                       name="queryTimeout"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-slate-700 dark:text-slate-300">Query Timeout (seconds)</FormLabel>
+                          <FormLabel className="text-slate-700 dark:text-slate-300 font-extrabold">Query Timeout (seconds)</FormLabel>
                           <FormControl>
                             <Input
                               type="number"

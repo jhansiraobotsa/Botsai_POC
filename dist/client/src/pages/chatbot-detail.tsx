@@ -26,7 +26,7 @@ import type { Chatbot, ChatMessage } from "@shared/schema";
 import DashboardLayout from "@/components/dashboard-layout";
 import { useTheme } from "@/components/theme-provider";
 import { Progress } from "@/components/ui/progress";
-import { API_ENDPOINTS, transformFastAPIToFrontend, authenticatedFetch } from "@/lib/api-config";
+import { API_ENDPOINTS, transformFastAPIToFrontend, authenticatedFetch, FASTAPI_BASE_URL } from "@/lib/api-config";
 
 // Create a context for tab management
 const TabContext = createContext<((tab: string) => void) | null>(null);
@@ -193,19 +193,19 @@ function OverviewTab({ chatbot }: { chatbot: Chatbot }) {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label className="text-sm font-medium text-slate-700">Industry</Label>
-                <p className="text-slate-600">{chatbot.industry}</p>
+                <Label className="text-md font-bold text-slate-700">Industry</Label>
+                <p className="text-slate-600 text-sm">{chatbot.industry}</p>
               </div>
               <div>
-                <Label className="text-sm font-medium text-slate-700">Purpose</Label>
-                <p className="text-slate-600">{chatbot.purpose}</p>
+                <Label className="text-md font-bold text-slate-700">Purpose</Label>
+                <p className="text-slate-600 text-sm">{chatbot.purpose}</p>
               </div>
               <div>
-                <Label className="text-sm font-medium text-slate-700">Tone</Label>
-                <p className="text-slate-600">{chatbot.tone}</p>
+                <Label className="text-md font-bold text-slate-700">Tone</Label>
+                <p className="text-slate-600 text-sm">{chatbot.tone}</p>
               </div>
               <div>
-                <Label className="text-sm font-medium text-slate-700">Brand Color</Label>
+                <Label className="text-md font-bold text-slate-700">Brand Color</Label>
                 <div className="flex items-center space-x-2">
                   <div 
                     className="w-6 h-6 rounded border"
@@ -217,15 +217,15 @@ function OverviewTab({ chatbot }: { chatbot: Chatbot }) {
             </div>
             <Separator />
             <div>
-              <Label className="text-sm font-medium text-slate-700">Business Goal</Label>
+              <Label className="text-md font-bold text-slate-700">Business Goal</Label>
               <p className="text-slate-600 mt-1">{chatbot.businessGoal}</p>
             </div>
             <div>
-              <Label className="text-sm font-medium text-slate-700">Target Audience</Label>
+              <Label className="text-md font-bold text-slate-700">Target Audience</Label>
               <p className="text-slate-600 mt-1">{chatbot.targetAudience}</p>
             </div>
             <div>
-              <Label className="text-sm font-medium text-slate-700">Key Features</Label>
+              <Label className="text-md font-bold text-slate-700">Key Features</Label>
               <p className="text-slate-600 mt-1">{chatbot.keyFeatures}</p>
             </div>
           </CardContent>
@@ -995,40 +995,134 @@ function DocumentsTab({ chatbotId }: { chatbotId: string }) {
   }
 }
 
+
 function ChatInterfaceTab({ chatbot }: { chatbot: Chatbot }) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [sessionId, setSessionId] = useState('');
-  
-  // Customization states
-  const [welcomeMessage, setWelcomeMessage] = useState(
-    `Hello! I'm ${chatbot.name}, your AI assistant. How can I help you today?`
-  );
-  const [chatName, setChatName] = useState(chatbot.name);
-  const [placeholderText, setPlaceholderText] = useState('Type your message...');
-  const [headerColor, setHeaderColor] = useState(chatbot.brandColor);
-  const [userBubbleColor, setUserBubbleColor] = useState('#6366f1');
-  const [botBubbleColor, setBotBubbleColor] = useState('#f1f5f9');
-  const [fontSize, setFontSize] = useState('14');
-  const [borderRadius, setBorderRadius] = useState('8');
-  const [widgetPosition, setWidgetPosition] = useState(chatbot.widgetPosition || 'bottom-right');
-  const [showAvatar, setShowAvatar] = useState(true);
-  const [typingIndicator, setTypingIndicator] = useState(true);
-  const [quickReplies, setQuickReplies] = useState<string[]>([
-    'Tell me more',
-    'How does this work?',
-    'Contact support'
-  ]);
-  const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([
-    'What are your business hours?',
-    'How can I contact you?',
-    'Tell me about your services'
-  ]);
-  
+  const queryClient = useQueryClient();
   const { toast } = useToast();
+  
+  // Fetch existing customization data
+  const { data: customizationData, isLoading } = useQuery({
+    queryKey: ["chatbot-customization", chatbot.id],
+    queryFn: async () => {
+      const response = await authenticatedFetch(`${FASTAPI_BASE_URL}/api/v1/chatbot/customization/${chatbot.id}`);
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          // Return null if no customization exists yet
+          return null;
+        }
+        throw new Error('Failed to fetch customization data');
+      }
+      
+      return await response.json();
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
-  // Set initial welcome message when component mounts
+  // Initialize states with either fetched data or defaults
+  const [welcomeMessage, setWelcomeMessage] = useState(
+    customizationData?.welcome_message || `Hello! I'm ${chatbot.name}, your AI assistant. How can I help you today?`
+  );
+  const [chatName, setChatName] = useState(customizationData?.agent_name || chatbot.name);
+  const [placeholderText, setPlaceholderText] = useState(customizationData?.input_placeholder || 'Type your message...');
+  const [headerColor, setHeaderColor] = useState(customizationData?.header_color || chatbot.brandColor);
+  const [userBubbleColor, setUserBubbleColor] = useState(customizationData?.user_bubble_color || '#6366f1');
+  const [botBubbleColor, setBotBubbleColor] = useState('#f1f5f9');
+  const [fontSize, setFontSize] = useState(customizationData?.font_size?.toString() || '14');
+  const [borderRadius, setBorderRadius] = useState(customizationData?.border_radius?.toString() || '8');
+  const [widgetPosition, setWidgetPosition] = useState(customizationData?.widget_position || chatbot.widgetPosition || 'bottom-right');
+  const [showAvatar, setShowAvatar] = useState(customizationData?.show_avatar ?? true);
+  const [typingIndicator, setTypingIndicator] = useState(customizationData?.typing_indicator ?? true);
+  const [quickReplies, setQuickReplies] = useState<string[]>(
+    customizationData?.quick_replies || ['Tell me more', 'How does this work?', 'Contact support']
+  );
+  const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>(
+    customizationData?.suggested_questions || [
+      'What are your business hours?',
+      'How can I contact you?',
+      'Tell me about your services'
+    ]
+  );
+  
+  // Advanced settings states
+  const [enableFileUpload, setEnableFileUpload] = useState(customizationData?.enable_file_upload || false);
+  const [enableVoiceInput, setEnableVoiceInput] = useState(customizationData?.enable_voice_input || false);
+  const [showPoweredBy, setShowPoweredBy] = useState(customizationData?.show_powered_by ?? true);
+  const [responseStyle, setResponseStyle] = useState(customizationData?.response_style || 'Professional & Formal');
+  const [responseTone, setResponseTone] = useState(customizationData?.response_tone || 'Helpful & Supportive');
+  const [maxResponseLength, setMaxResponseLength] = useState(customizationData?.max_response_length || 150);
+  const [fallbackMessage, setFallbackMessage] = useState(
+    customizationData?.fallback_message || "I'm not sure I understand. Could you please rephrase your question?"
+  );
+  const [operatingHours, setOperatingHours] = useState<any>(
+    customizationData?.operating_hours || {
+      enabled: false,
+      timezone: 'UTC',
+      schedule: {
+        monday: { start: '09:00', end: '17:00' },
+        tuesday: { start: '09:00', end: '17:00' },
+        wednesday: { start: '09:00', end: '17:00' },
+        thursday: { start: '09:00', end: '17:00' },
+        friday: { start: '09:00', end: '17:00' },
+        saturday: { start: '00:00', end: '00:00' },
+        sunday: { start: '00:00', end: '00:00' }
+      }
+    }
+  );
+  const [offlineMessage, setOfflineMessage] = useState(
+    customizationData?.offline_message || "We're currently offline. Leave a message and we'll get back to you!"
+  );
+  const [chatLanguage, setChatLanguage] = useState(customizationData?.chat_language || 'English');
+
+  // Update states when customization data is fetched
+  useEffect(() => {
+    if (customizationData) {
+      setWelcomeMessage(customizationData.welcome_message || `Hello! I'm ${chatbot.name}, your AI assistant. How can I help you today?`);
+      setChatName(customizationData.agent_name || chatbot.name);
+      setPlaceholderText(customizationData.input_placeholder || 'Type your message...');
+      setHeaderColor(customizationData.header_color || chatbot.brandColor);
+      setUserBubbleColor(customizationData.user_bubble_color || '#6366f1');
+      setFontSize(customizationData.font_size?.toString() || '14');
+      setBorderRadius(customizationData.border_radius?.toString() || '8');
+      setWidgetPosition(customizationData.widget_position || chatbot.widgetPosition || 'bottom-right');
+      setShowAvatar(customizationData.show_avatar ?? true);
+      setTypingIndicator(customizationData.typing_indicator ?? true);
+      setQuickReplies(customizationData.quick_replies || ['Tell me more', 'How does this work?', 'Contact support']);
+      setSuggestedQuestions(customizationData.suggested_questions || [
+        'What are your business hours?',
+        'How can I contact you?',
+        'Tell me about your services'
+      ]);
+      setEnableFileUpload(customizationData.enable_file_upload || false);
+      setEnableVoiceInput(customizationData.enable_voice_input || false);
+      setShowPoweredBy(customizationData.show_powered_by ?? true);
+      setResponseStyle(customizationData.response_style || 'Professional & Formal');
+      setResponseTone(customizationData.response_tone || 'Helpful & Supportive');
+      setMaxResponseLength(customizationData.max_response_length || 150);
+      setFallbackMessage(customizationData.fallback_message || "I'm not sure I understand. Could you please rephrase your question?");
+      setOperatingHours(customizationData.operating_hours || {
+        enabled: false,
+        timezone: 'UTC',
+        schedule: {
+          monday: { start: '09:00', end: '17:00' },
+          tuesday: { start: '09:00', end: '17:00' },
+          wednesday: { start: '09:00', end: '17:00' },
+          thursday: { start: '09:00', end: '17:00' },
+          friday: { start: '09:00', end: '17:00' },
+          saturday: { start: '00:00', end: '00:00' },
+          sunday: { start: '00:00', end: '00:00' }
+        }
+      });
+      setOfflineMessage(customizationData.offline_message || "We're currently offline. Leave a message and we'll get back to you!");
+      setChatLanguage(customizationData.chat_language || 'English');
+    }
+  }, [customizationData, chatbot.name, chatbot.brandColor, chatbot.widgetPosition]);
+
+  // Set initial welcome message when component mounts or welcomeMessage changes
   useEffect(() => {
     setMessages([{
       id: 'welcome',
@@ -1037,6 +1131,115 @@ function ChatInterfaceTab({ chatbot }: { chatbot: Chatbot }) {
       timestamp: new Date(),
     }]);
   }, [welcomeMessage]);
+
+  // Mutation for saving customization settings
+  const saveCustomizationMutation = useMutation({
+    mutationFn: async (customizationData: any) => {
+      const response = await authenticatedFetch(`${FASTAPI_BASE_URL}/api/v1/chatbot/customization/upsert`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(customizationData)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save customization settings');
+      }
+
+      return await response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Customizations Saved",
+        description: "Your AI agent settings have been updated successfully.",
+      });
+      // Invalidate the query to refetch the data
+      queryClient.invalidateQueries({ queryKey: ["chatbot-customization", chatbot.id] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Save Failed",
+        description: error.message || "Failed to save customization settings",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Function to prepare and send customization data
+  const saveCustomizations = () => {
+    const customizationData = {
+      chatbot_id: chatbot.id, 
+      agent_name: chatName,
+      header_color: headerColor,
+      user_bubble_color: userBubbleColor,
+      font_size: fontSize,
+      border_radius: borderRadius,
+      show_avatar: showAvatar,
+      widget_position: widgetPosition,
+      welcome_message: welcomeMessage,
+      input_placeholder: placeholderText,
+      suggested_questions: suggestedQuestions,
+      quick_replies: quickReplies,
+      fallback_message: fallbackMessage,
+      typing_indicator: typingIndicator,
+      response_style: responseStyle,
+      response_tone: responseTone,
+      max_response_length: maxResponseLength,
+      enable_file_upload: enableFileUpload,
+      enable_voice_input: enableVoiceInput,
+      show_powered_by: showPoweredBy,
+      operating_hours: operatingHours,
+      offline_message: offlineMessage,
+      chat_language: chatLanguage
+    };
+    
+    saveCustomizationMutation.mutate(customizationData);
+  };
+
+  // Function to reset to defaults
+  const resetToDefaults = () => {
+    setChatName(chatbot.name);
+    setHeaderColor(chatbot.brandColor);
+    setUserBubbleColor('#6366f1');
+    setBotBubbleColor('#f1f5f9');
+    setFontSize('14');
+    setBorderRadius('8');
+    setWidgetPosition(chatbot.widgetPosition || 'bottom-right');
+    setShowAvatar(true);
+    setWelcomeMessage(`Hello! I'm ${chatbot.name}, your AI assistant. How can I help you today?`);
+    setPlaceholderText('Type your message...');
+    setTypingIndicator(true);
+    setQuickReplies(['Tell me more', 'How does this work?', 'Contact support']);
+    setSuggestedQuestions(['What are your business hours?', 'How can I contact you?', 'Tell me about your services']);
+    setEnableFileUpload(false);
+    setEnableVoiceInput(false);
+    setShowPoweredBy(true);
+    setResponseStyle('Professional & Formal');
+    setResponseTone('Helpful & Supportive');
+    setMaxResponseLength(150);
+    setFallbackMessage("I'm not sure I understand. Could you please rephrase your question?");
+    setOperatingHours({
+      enabled: false,
+      timezone: 'UTC',
+      schedule: {
+        monday: { start: '09:00', end: '17:00' },
+        tuesday: { start: '09:00', end: '17:00' },
+        wednesday: { start: '09:00', end: '17:00' },
+        thursday: { start: '09:00', end: '17:00' },
+        friday: { start: '09:00', end: '17:00' },
+        saturday: { start: '00:00', end: '00:00' },
+        sunday: { start: '00:00', end: '00:00' }
+      }
+    });
+    setOfflineMessage("We're currently offline. Leave a message and we'll get back to you!");
+    setChatLanguage('English');
+
+    toast({
+      title: "Reset to Defaults",
+      description: "All customizations have been reset.",
+    });
+  };
 
   const sendMessage = async (messageText: string, isInitial = false) => {
     const trimmedMessage = messageText.trim();
@@ -1071,7 +1274,6 @@ function ChatInterfaceTab({ chatbot }: { chatbot: Chatbot }) {
 
       const data = await response.json();
       
-      // Update session ID if this is first message
       if (!sessionId) {
         setSessionId(data.session_id);
       }
@@ -1092,7 +1294,6 @@ function ChatInterfaceTab({ chatbot }: { chatbot: Chatbot }) {
         variant: "destructive"
       });
       
-      // Add error message to chat
       const errorMessage: ChatMessage = {
         id: Date.now().toString(),
         content: "I apologize, but I'm having trouble responding right now. Please try again.",
@@ -1105,8 +1306,21 @@ function ChatInterfaceTab({ chatbot }: { chatbot: Chatbot }) {
     }
   };
 
+  // Add loading state
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-center">
+          <i className="fas fa-spinner fa-spin text-2xl text-primary mb-2"></i>
+          <p>Loading customization settings...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Live Chat Preview */}
       <div className="space-y-6">
         <Card>
           <CardHeader>
@@ -1261,9 +1475,11 @@ function ChatInterfaceTab({ chatbot }: { chatbot: Chatbot }) {
                     <i className="fas fa-paper-plane"></i>
                   </Button>
                 </div>
-                <p className="text-[10px] text-slate-400 mt-2 text-center">
-                  Powered by Vyoma.ai
-                </p>
+                {showPoweredBy && (
+                  <p className="text-[10px] text-slate-400 mt-2 text-center">
+                    Powered by Vyoma.ai
+                  </p>
+                )}
               </div>
             </div>
           </CardContent>
@@ -1305,18 +1521,18 @@ function ChatInterfaceTab({ chatbot }: { chatbot: Chatbot }) {
               {/* Appearance Tab */}
               <TabsContent value="appearance" className="space-y-4 mt-4">
                 <div>
-                  <Label className="text-sm font-medium">Agent Name</Label>
+                  <Label className="text-sm font-bold">Agent Name</Label>
                   <Input
                     value={chatName}
                     onChange={(e) => setChatName(e.target.value)}
-                    className="mt-1.5"
+                    className="mt-1.5 font-medium"
                     placeholder="My AI Assistant"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-sm font-medium">Header Color</Label>
+                    <Label className="text-sm font-bold">Header Color</Label>
                     <div className="flex items-center space-x-2 mt-1.5">
                       <input
                         type="color"
@@ -1333,7 +1549,7 @@ function ChatInterfaceTab({ chatbot }: { chatbot: Chatbot }) {
                   </div>
 
                   <div>
-                    <Label className="text-sm font-medium">User Bubble Color</Label>
+                    <Label className="text-sm font-bold">User Bubble Color</Label>
                     <div className="flex items-center space-x-2 mt-1.5">
                       <input
                         type="color"
@@ -1352,7 +1568,7 @@ function ChatInterfaceTab({ chatbot }: { chatbot: Chatbot }) {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-sm font-medium">Font Size: {fontSize}px</Label>
+                    <Label className="text-sm font-bold">Font Size: {fontSize}px</Label>
                     <input
                       type="range"
                       min="12"
@@ -1364,7 +1580,7 @@ function ChatInterfaceTab({ chatbot }: { chatbot: Chatbot }) {
                   </div>
 
                   <div>
-                    <Label className="text-sm font-medium">Border Radius: {borderRadius}px</Label>
+                    <Label className="text-sm font-bold">Border Radius: {borderRadius}px</Label>
                     <input
                       type="range"
                       min="0"
@@ -1390,7 +1606,7 @@ function ChatInterfaceTab({ chatbot }: { chatbot: Chatbot }) {
                 </div>
 
                 <div>
-                  <Label className="text-sm font-medium">Widget Position</Label>
+                  <Label className="text-sm font-bold">Widget Position</Label>
                   <select
                     value={widgetPosition}
                     onChange={(e) => setWidgetPosition(e.target.value)}
@@ -1407,7 +1623,7 @@ function ChatInterfaceTab({ chatbot }: { chatbot: Chatbot }) {
               {/* Messages Tab */}
               <TabsContent value="messages" className="space-y-4 mt-4">
                 <div>
-                  <Label className="text-sm font-medium">Welcome Message</Label>
+                  <Label className="text-sm font-bold">Welcome Message</Label>
                   <Textarea
                     value={welcomeMessage}
                     onChange={(e) => setWelcomeMessage(e.target.value)}
@@ -1421,7 +1637,7 @@ function ChatInterfaceTab({ chatbot }: { chatbot: Chatbot }) {
                 </div>
 
                 <div>
-                  <Label className="text-sm font-medium">Input Placeholder</Label>
+                  <Label className="text-sm font-bold">Input Placeholder</Label>
                   <Input
                     value={placeholderText}
                     onChange={(e) => setPlaceholderText(e.target.value)}
@@ -1432,7 +1648,7 @@ function ChatInterfaceTab({ chatbot }: { chatbot: Chatbot }) {
                 <Separator />
 
                 <div>
-                  <Label className="text-sm font-medium">Suggested Questions</Label>
+                  <Label className="text-sm font-bold">Suggested Questions</Label>
                   <p className="text-xs text-slate-500 mb-2">
                     Show these questions when chat opens
                   </p>
@@ -1471,7 +1687,7 @@ function ChatInterfaceTab({ chatbot }: { chatbot: Chatbot }) {
                 <Separator />
 
                 <div>
-                  <Label className="text-sm font-medium">Quick Replies</Label>
+                  <Label className="text-sm font-bold">Quick Replies</Label>
                   <p className="text-xs text-slate-500 mb-2">
                     Quick action buttons during conversation
                   </p>
@@ -1524,8 +1740,12 @@ function ChatInterfaceTab({ chatbot }: { chatbot: Chatbot }) {
                 </div>
 
                 <div>
-                  <Label className="text-sm font-medium">Response Style</Label>
-                  <select className="w-full mt-1.5 p-2 border rounded-md">
+                  <Label className="text-sm font-bold">Response Style</Label>
+                  <select 
+                    value={responseStyle}
+                    onChange={(e) => setResponseStyle(e.target.value)}
+                    className="w-full mt-1.5 p-2 border rounded-md"
+                  >
                     <option>Professional & Formal</option>
                     <option>Friendly & Conversational</option>
                     <option>Concise & Direct</option>
@@ -1534,8 +1754,12 @@ function ChatInterfaceTab({ chatbot }: { chatbot: Chatbot }) {
                 </div>
 
                 <div>
-                  <Label className="text-sm font-medium">Response Tone</Label>
-                  <select className="w-full mt-1.5 p-2 border rounded-md">
+                  <Label className="text-sm font-bold">Response Tone</Label>
+                  <select 
+                    value={responseTone}
+                    onChange={(e) => setResponseTone(e.target.value)}
+                    className="w-full mt-1.5 p-2 border rounded-md"
+                  >
                     <option>Helpful & Supportive</option>
                     <option>Enthusiastic & Energetic</option>
                     <option>Calm & Reassuring</option>
@@ -1544,10 +1768,11 @@ function ChatInterfaceTab({ chatbot }: { chatbot: Chatbot }) {
                 </div>
 
                 <div>
-                  <Label className="text-sm font-medium">Max Response Length (words)</Label>
+                  <Label className="text-sm font-bold">Max Response Length (words)</Label>
                   <Input
                     type="number"
-                    defaultValue="150"
+                    value={maxResponseLength}
+                    onChange={(e) => setMaxResponseLength(parseInt(e.target.value))}
                     className="mt-1.5"
                   />
                   <p className="text-xs text-slate-500 mt-1">
@@ -1556,9 +1781,10 @@ function ChatInterfaceTab({ chatbot }: { chatbot: Chatbot }) {
                 </div>
 
                 <div>
-                  <Label className="text-sm font-medium">Fallback Message</Label>
+                  <Label className="text-sm font-bold">Fallback Message</Label>
                   <Textarea
-                    defaultValue="I'm not sure I understand. Could you please rephrase your question?"
+                    value={fallbackMessage}
+                    onChange={(e) => setFallbackMessage(e.target.value)}
                     className="mt-1.5"
                     rows={2}
                   />
@@ -1572,7 +1798,12 @@ function ChatInterfaceTab({ chatbot }: { chatbot: Chatbot }) {
                     <Label className="text-sm font-medium">Enable File Upload</Label>
                     <p className="text-xs text-slate-500">Let users upload documents</p>
                   </div>
-                  <input type="checkbox" className="w-5 h-5" />
+                  <input 
+                    type="checkbox" 
+                    checked={enableFileUpload}
+                    onChange={(e) => setEnableFileUpload(e.target.checked)}
+                    className="w-5 h-5" 
+                  />
                 </div>
 
                 <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
@@ -1580,7 +1811,12 @@ function ChatInterfaceTab({ chatbot }: { chatbot: Chatbot }) {
                     <Label className="text-sm font-medium">Enable Voice Input</Label>
                     <p className="text-xs text-slate-500">Speech-to-text functionality</p>
                   </div>
-                  <input type="checkbox" className="w-5 h-5" />
+                  <input 
+                    type="checkbox" 
+                    checked={enableVoiceInput}
+                    onChange={(e) => setEnableVoiceInput(e.target.checked)}
+                    className="w-5 h-5" 
+                  />
                 </div>
 
                 <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
@@ -1588,16 +1824,41 @@ function ChatInterfaceTab({ chatbot }: { chatbot: Chatbot }) {
                     <Label className="text-sm font-medium">Show Powered By Badge</Label>
                     <p className="text-xs text-slate-500">Display "Powered by Vyoma.ai"</p>
                   </div>
-                  <input type="checkbox" defaultChecked className="w-5 h-5" />
+                  <input 
+                    type="checkbox" 
+                    checked={showPoweredBy}
+                    onChange={(e) => setShowPoweredBy(e.target.checked)}
+                    className="w-5 h-5" 
+                  />
                 </div>
 
                 <Separator />
 
                 <div>
-                  <Label className="text-sm font-medium">Operating Hours</Label>
+                  <Label className="text-sm font-bold">Operating Hours</Label>
                   <div className="grid grid-cols-2 gap-2 mt-1.5">
-                    <Input type="time" defaultValue="09:00" />
-                    <Input type="time" defaultValue="17:00" />
+                    <Input 
+                      type="time" 
+                      value={operatingHours.schedule.monday.start}
+                      onChange={(e) => setOperatingHours((prev: any) => ({
+                        ...prev,
+                        schedule: {
+                          ...prev.schedule,
+                          monday: { ...prev.schedule.monday, start: e.target.value }
+                        }
+                      }))}
+                    />
+                    <Input 
+                      type="time" 
+                      value={operatingHours.schedule.monday.end}
+                      onChange={(e) => setOperatingHours((prev: any) => ({
+                        ...prev,
+                        schedule: {
+                          ...prev.schedule,
+                          monday: { ...prev.schedule.monday, end: e.target.value }
+                        }
+                      }))}
+                    />
                   </div>
                   <p className="text-xs text-slate-500 mt-1">
                     Show offline message outside these hours
@@ -1605,17 +1866,22 @@ function ChatInterfaceTab({ chatbot }: { chatbot: Chatbot }) {
                 </div>
 
                 <div>
-                  <Label className="text-sm font-medium">Offline Message</Label>
+                  <Label className="text-sm font-bold">Offline Message</Label>
                   <Textarea
-                    defaultValue="We're currently offline. Leave a message and we'll get back to you!"
+                    value={offlineMessage}
+                    onChange={(e) => setOfflineMessage(e.target.value)}
                     className="mt-1.5"
                     rows={2}
                   />
                 </div>
 
                 <div>
-                  <Label className="text-sm font-medium">Chat Language</Label>
-                  <select className="w-full mt-1.5 p-2 border rounded-md">
+                  <Label className="text-sm font-bold">Chat Language</Label>
+                  <select 
+                    value={chatLanguage}
+                    onChange={(e) => setChatLanguage(e.target.value)}
+                    className="w-full mt-1.5 p-2 border rounded-md"
+                  >
                     <option>English</option>
                     <option>Spanish</option>
                     <option>French</option>
@@ -1633,31 +1899,24 @@ function ChatInterfaceTab({ chatbot }: { chatbot: Chatbot }) {
             <div className="flex space-x-2">
               <Button 
                 className="flex-1"
-                onClick={() => {
-                  toast({
-                    title: "Customizations Saved",
-                    description: "Your AI agent settings have been updated successfully.",
-                  });
-                }}
+                onClick={saveCustomizations}
+                disabled={saveCustomizationMutation.isPending}
               >
-                <i className="fas fa-save mr-2"></i>
-                Save All Changes
+                {saveCustomizationMutation.isPending ? (
+                  <>
+                    <i className="fas fa-spinner fa-spin mr-2"></i>
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-save mr-2"></i>
+                    Save All Changes
+                  </>
+                )}
               </Button>
               <Button 
                 variant="outline"
-                onClick={() => {
-                  // Reset to defaults
-                  setChatName(chatbot.name);
-                  setHeaderColor(chatbot.brandColor);
-                  setUserBubbleColor('#6366f1');
-                  setBotBubbleColor('#f1f5f9');
-                  setFontSize('14');
-                  setBorderRadius('8');
-                  toast({
-                    title: "Reset to Defaults",
-                    description: "All customizations have been reset.",
-                  });
-                }}
+                onClick={resetToDefaults}
               >
                 <i className="fas fa-undo mr-2"></i>
                 Reset
@@ -1669,6 +1928,8 @@ function ChatInterfaceTab({ chatbot }: { chatbot: Chatbot }) {
     </div>
   );
 }
+
+
 
 function AnalyticsTab({ chatbotId }: { chatbotId: string }) {
   return (
@@ -1822,46 +2083,74 @@ function AnalyticsTab({ chatbotId }: { chatbotId: string }) {
   );
 }
 
+
 function EmbedExportTab({ chatbot }: { chatbot: Chatbot }) {
   const [copied, setCopied] = useState('');
   const [embedType, setEmbedType] = useState<'iframe' | 'script' | 'popup'>('popup');
   const [widgetSize, setWidgetSize] = useState({ width: '400', height: '600' });
   const [showPreview, setShowPreview] = useState(false);
+  const [customizationData, setCustomizationData] = useState<any>(null);
+  const [isLoadingCustomization, setIsLoadingCustomization] = useState(false);
   const { toast } = useToast();
   
   const baseUrl = window.location.origin;
-  const apiUrl = 'https://vyomai.techraq.com'; // Updated to match your backend from api-config.ts
-  
-  // Popup Widget (Recommended)
+
+  // Fetch customization data
+  const fetchCustomizationData = async () => {
+    setIsLoadingCustomization(true);
+    try {
+      const response = await authenticatedFetch(`${FASTAPI_BASE_URL}/api/v1/chatbot/customization/${chatbot.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Fetched customization data:', data);
+        setCustomizationData(data);
+        return data;
+      } else {
+        throw new Error('Failed to fetch customization data');
+      }
+    } catch (error) {
+      console.error('Error fetching customization:', error);
+      toast({
+        title: "Failed to load customization",
+        description: "Using default widget settings",
+        variant: "destructive"
+      });
+      return null;
+    } finally {
+      setIsLoadingCustomization(false);
+    }
+  };
+
+  // Enhanced popup widget code with customization parameters
   const popupWidgetCode = `<!-- Vyoma AI Chat Widget -->
 <script
   src="${baseUrl}/widget.js"
   data-chatbot-id="${chatbot.id}"
-  data-api-url="${apiUrl}"
-  data-position="${chatbot.widgetPosition || 'bottom-right'}"
-  data-color="${chatbot.brandColor || '#6366f1'}"
+  data-api-url="${FASTAPI_BASE_URL}"
+  data-position="${customizationData?.widget_position || chatbot.widgetPosition || 'bottom-right'}"
+  data-color="${customizationData?.header_color || chatbot.brandColor || '#6366f1'}"
   data-button-text="Chat with us"
   async
 ></script>`;
 
-  // Direct Iframe Code  
+  // Enhanced iframe code with customization parameters
   const iframeCode = `<!-- Vyoma AI Chat Widget (Iframe) -->
 <iframe
-  src="${baseUrl}/widget.html?id=${chatbot.id}&api=${apiUrl}"
+  src="${baseUrl}/widget.html?id=${chatbot.id}&api=${FASTAPI_BASE_URL}&agent_name=${encodeURIComponent(customizationData?.agent_name || chatbot.name)}&header_color=${encodeURIComponent(customizationData?.header_color || chatbot.brandColor || '#6366f1')}"
   width="${widgetSize.width}"
   height="${widgetSize.height}"
   frameborder="0"
   allow="microphone"
-  style="position: fixed; ${chatbot.widgetPosition?.includes('bottom') ? 'bottom' : 'top'}: 20px; ${chatbot.widgetPosition?.includes('right') ? 'right' : 'left'}: 20px; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); z-index: 9999;"
+  style="position: fixed; ${customizationData?.widget_position?.includes('bottom') ? 'bottom' : 'top'}: 20px; ${customizationData?.widget_position?.includes('right') ? 'right' : 'left'}: 20px; border-radius: ${customizationData?.border_radius || '16'}px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); z-index: 9999;"
 ></iframe>`;
 
-  // JavaScript Snippet
+  // Enhanced JavaScript snippet
   const jsCode = `<!-- Vyoma AI Chat Widget (Custom JS) -->
 <script>
 (function() {
   var iframe = document.createElement('iframe');
-  iframe.src = '${baseUrl}/widget.html?id=${chatbot.id}&api=${apiUrl}';
-  iframe.style.cssText = 'position: fixed; ${chatbot.widgetPosition?.includes('bottom') ? 'bottom' : 'top'}: 20px; ${chatbot.widgetPosition?.includes('right') ? 'right' : 'left'}: 20px; width: ${widgetSize.width}px; height: ${widgetSize.height}px; border: none; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); z-index: 9999;';
+  iframe.src = '${baseUrl}/widget.html?id=${chatbot.id}&api=${FASTAPI_BASE_URL}&agent_name=${encodeURIComponent(customizationData?.agent_name || chatbot.name)}&header_color=${encodeURIComponent(customizationData?.header_color || chatbot.brandColor || '#6366f1')}';
+  iframe.style.cssText = 'position: fixed; ${customizationData?.widget_position?.includes('bottom') ? 'bottom' : 'top'}: 20px; ${customizationData?.widget_position?.includes('right') ? 'right' : 'left'}: 20px; width: ${widgetSize.width}px; height: ${widgetSize.height}px; border: none; border-radius: ${customizationData?.border_radius || '16'}px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); z-index: 9999;';
   iframe.setAttribute('allow', 'microphone');
   document.body.appendChild(iframe);
 })();
@@ -1877,9 +2166,66 @@ function EmbedExportTab({ chatbot }: { chatbot: Chatbot }) {
     setTimeout(() => setCopied(''), 3000);
   };
 
-  const openPreview = () => {
-    window.open(`${baseUrl}/widget.html?id=${chatbot.id}&api=${apiUrl}`, 'Widget Preview', 'width=400,height=700');
+  // Enhanced preview function that shows API response
+  const openPreview = async () => {
+    setIsLoadingCustomization(true);
+    
+    try {
+      const data = await fetchCustomizationData();
+      
+      // Build preview URL with customization parameters
+      // URLSearchParams expects string values (or string[]). Convert all values to strings
+      const previewParams = new URLSearchParams();
+      previewParams.set('id', String(chatbot.id));
+      previewParams.set('api', String(FASTAPI_BASE_URL));
+      previewParams.set('preview', 'true');
+      previewParams.set('agent_name', String(data?.agent_name || chatbot.name || ''));
+      previewParams.set('header_color', String(data?.header_color || chatbot.brandColor || '#6366f1'));
+      previewParams.set('user_bubble_color', String(data?.user_bubble_color || '#6366f1'));
+      previewParams.set('font_size', String(data?.font_size || '14'));
+      previewParams.set('border_radius', String(data?.border_radius || '8'));
+      previewParams.set('widget_position', String(data?.widget_position || 'bottom-right'));
+      previewParams.set('welcome_message', String(data?.welcome_message || `Hello! I'm ${chatbot.name}, your AI assistant. How can I help you today?`));
+      previewParams.set('input_placeholder', String(data?.input_placeholder || 'Type your message...'));
+      previewParams.set('suggested_questions', data?.suggested_questions ? JSON.stringify(data.suggested_questions) : '[]');
+      previewParams.set('quick_replies', data?.quick_replies ? JSON.stringify(data.quick_replies) : '[]');
+      previewParams.set('show_avatar', String(data?.show_avatar !== false));
+      previewParams.set('typing_indicator', String(data?.typing_indicator !== false));
+      previewParams.set('show_powered_by', String(data?.show_powered_by !== false));
+
+      const previewUrl = `${baseUrl}/widget.html?${previewParams.toString()}`;
+      
+      // Open preview window
+      const previewWindow = window.open(previewUrl, 'Widget Preview', 'width=400,height=700,scrollbars=no,resizable=yes');
+      
+      if (previewWindow) {
+        // Show success toast with customization info
+        toast({
+          title: "Widget Preview Opened",
+          description: data ? 
+            `Loaded customization for "${data.agent_name}"` : 
+            "Using default widget settings",
+          duration: 3000,
+        });
+
+        // Also show detailed customization data in console for debugging
+        console.log('Customization API Response:', data);
+      }
+    } catch (error) {
+      toast({
+        title: "Preview Error",
+        description: "Failed to load widget preview",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoadingCustomization(false);
+    }
   };
+
+  // Load customization data on component mount
+  useEffect(() => {
+    fetchCustomizationData();
+  }, [chatbot.id]);
 
   return (
     <div className="space-y-6">
@@ -1892,9 +2238,22 @@ function EmbedExportTab({ chatbot }: { chatbot: Chatbot }) {
           </p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" onClick={openPreview}>
-            <i className="fas fa-external-link-alt mr-2"></i>
-            Test Widget
+          <Button 
+            variant="outline" 
+            onClick={openPreview}
+            disabled={isLoadingCustomization}
+          >
+            {isLoadingCustomization ? (
+              <>
+                <i className="fas fa-spinner fa-spin mr-2"></i>
+                Loading...
+              </>
+            ) : (
+              <>
+                <i className="fas fa-external-link-alt mr-2"></i>
+                Test Widget
+              </>
+            )}
           </Button>
           <Button onClick={() => {
             const code = embedType === 'popup' ? popupWidgetCode : embedType === 'iframe' ? iframeCode : jsCode;
@@ -1905,6 +2264,145 @@ function EmbedExportTab({ chatbot }: { chatbot: Chatbot }) {
           </Button>
         </div>
       </div>
+
+      {/* Customization Status Card */}
+      {customizationData && (
+        <Card className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center flex-shrink-0">
+                <i className="fas fa-check text-green-600 dark:text-green-400"></i>
+              </div>
+              <div className="flex-1">
+                <h4 className="font-semibold text-green-900 dark:text-green-100 mb-1">
+                  Customization Loaded Successfully
+                </h4>
+                <p className="text-sm text-green-700 dark:text-green-300 mb-2">
+                  Your widget will use the saved customization settings.
+                </p>
+                <div className="flex flex-wrap gap-4 text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Agent:</span>
+                    <span>{customizationData.agent_name}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Color:</span>
+                    <div 
+                      className="w-3 h-3 rounded border"
+                      style={{ backgroundColor: customizationData.header_color }}
+                    ></div>
+                    <span>{customizationData.header_color}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Position:</span>
+                    <span>{customizationData.widget_position}</span>
+                  </div>
+                </div>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  console.log('Customization Data:', customizationData);
+                  toast({
+                    title: "Customization Data Logged",
+                    description: "Check browser console for full API response",
+                  });
+                }}
+              >
+                <i className="fas fa-code mr-2"></i>
+                View API Data
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* API Response Debug Panel (Collapsible) */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <i className="fas fa-bug text-orange-500"></i>
+            API Response Debug
+            <Badge variant="outline" className="text-xs">
+              Developer
+            </Badge>
+          </CardTitle>
+          <p className="text-sm text-slate-600 dark:text-slate-400">
+            View the actual API response that powers the widget customization
+          </p>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={fetchCustomizationData}
+                disabled={isLoadingCustomization}
+              >
+                {isLoadingCustomization ? (
+                  <>
+                    <i className="fas fa-spinner fa-spin mr-2"></i>
+                    Refreshing...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-sync-alt mr-2"></i>
+                    Refresh API Data
+                  </>
+                )}
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  navigator.clipboard.writeText(JSON.stringify(customizationData, null, 2));
+                  toast({
+                    title: "API Response Copied",
+                    description: "JSON data copied to clipboard",
+                  });
+                }}
+                disabled={!customizationData}
+              >
+                <i className="fas fa-copy mr-2"></i>
+                Copy JSON
+              </Button>
+            </div>
+
+            {customizationData ? (
+              <div className="bg-slate-900 dark:bg-slate-950 rounded-lg p-4 max-h-64 overflow-y-auto">
+                <pre className="text-green-400 text-xs">
+                  {JSON.stringify(customizationData, null, 2)}
+                </pre>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+                <i className="fas fa-database text-2xl mb-2"></i>
+                <p>No customization data loaded</p>
+                <p className="text-sm">Click "Refresh API Data" to fetch from server</p>
+              </div>
+            )}
+
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
+              <div className="flex items-start gap-2">
+                <i className="fas fa-info-circle text-blue-500 mt-0.5"></i>
+                <div>
+                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                    <strong>API Endpoint:</strong>{' '}
+                    <code className="bg-blue-100 dark:bg-blue-900 px-1.5 py-0.5 rounded text-xs">
+                      GET /api/v1/chatbot/customization/{chatbot.id}
+                    </code>
+                  </p>
+                  <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                    This data is automatically injected into the widget for real-time customization.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Embed Options */}
       <Card>
@@ -2146,7 +2644,10 @@ window.VyomaWidget.close();
 window.VyomaWidget.toggle();
 
 // Check if widget is open
-window.VyomaWidget.isOpen();`}</pre>
+window.VyomaWidget.isOpen();
+
+// Get customization data
+const customization = window.VyomaWidget.getCustomization();`}</pre>
                 </div>
               </div>
             </TabsContent>
@@ -2154,7 +2655,7 @@ window.VyomaWidget.isOpen();`}</pre>
         </CardContent>
       </Card>
 
-      {/* Quick Start Guide & Settings */}
+            {/* Quick Start Guide & Settings */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>

@@ -8,9 +8,8 @@ interface ChatbotWidgetProps {
   chatbot: Chatbot;
 }
 
-export default function ChatbotWidget({ chatbot }: ChatbotWidgetProps) {
+export default function ChatbotWidget({ chatbot }: any) {
   const [isOpen, setIsOpen] = useState(false);
-
   const getPositionClasses = () => {
     switch (chatbot.position) {
       case "bottom-left":

@@ -14,6 +14,13 @@ export default function AboutPage() {
       bio: "Visionary leader with expertise in enterprise software"
     },
     {
+      name: "Sumanth Kumar",
+      role: "Project Management",
+      initials: "SK",
+      color: "bg-gradient-to-br from-emerald-500 via-teal-600 to-cyan-700",
+      bio: "Visionary leader with expertise in enterprise software"
+    },
+    {
       name: "Khadar Khan",
       role: "Architect",
       initials: "KK",
@@ -28,7 +35,7 @@ export default function AboutPage() {
       bio: "Leading AI innovation and machine learning initiatives"
     },
     {
-      name: "Rahul Ramana",
+      name: "Rahul Namana",
       role: "Project Lead",
       initials: "RR",
       color: "bg-gradient-to-br from-orange-500 to-orange-700",
@@ -40,7 +47,20 @@ export default function AboutPage() {
       initials: "JB",
       color: "bg-gradient-to-br from-pink-500 to-pink-700",
       bio: "Specialist in AI development and implementation"
+    },{
+      name: "Praveen Polaki",
+      role: "Frontend Developer",
+      initials: "PP",
+      color: "bg-gradient-to-br from-fuchsia-500 via-purple-600 to-indigo-700",
+      bio: "Specialist in crafting clean, modern, and scalable frontend solutions"
+    },{
+      name: "Naveen Sai Ayila",
+      role: "AI Developer",
+      initials: "NSA",
+      color: "bg-gradient-to-br from-rose-400 via-pink-500 to-purple-600",
+      bio: "Specialist in AI development and implementation"
     }
+
   ];
 
   const values = [
@@ -67,12 +87,12 @@ export default function AboutPage() {
   ];
 
   const milestones = [
-    { year: "2010", event: "TechRaq Founded", description: "Started with a vision to democratize technology" },
-    { year: "2015", event: "Enterprise Growth", description: "Expanded to serve enterprise clients" },
-    { year: "2020", event: "AI Innovation", description: "Pivoted to focus on AI solutions" },
-    { year: "2023", event: "Vyoma.ai Launch", description: "Released our flagship chatbot platform" },
-    { year: "2024", event: "1,000+ Customers", description: "Crossed major adoption milestone" },
-    { year: "2024", event: "Global Reach", description: "Serving customers in 25+ countries" }
+    { year: "2010", event: "TechRAQ was started ", description: "Started with a vision to democratize technology" },
+    { year: "2020", event: " Products and Innovation", description: "Expanded to serve enterprise clients" },
+    { year: "2024", event: "AI and Products divisions", description: "Pivoted to focus on AI solutions" },
+    { year: "2025", event: "Vyoma.ai Launch", description: "Released our flagship chatbot platform" },
+    // { year: "2024", event: "1,000+ Customers", description: "Crossed major adoption milestone" },
+    { year: "2025", event: "Global Reach", description: "Serving customers in 25+ countries" }
   ];
 
   return (
@@ -80,10 +100,10 @@ export default function AboutPage() {
       <Navigation />
       
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary/10 via-secondary/10 to-primary/5 dark:from-primary/20 dark:via-secondary/20 dark:to-primary/10 py-20">
+      <section className="bg-gradient-to-br from-primary/10 via-secondary/10 to-primary/5 dark:from-primary/20 dark:via-secondary/20 dark:to-primary/10 py-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 dark:text-white mb-6">
-            About TechRaq & Vyoma.ai
+            About Vyoma.ai
           </h1>
           <p className="text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto">
             We're on a mission to make AI accessible to every business, regardless of size or technical expertise.
@@ -92,12 +112,12 @@ export default function AboutPage() {
       </section>
 
       {/* Story Section */}
-      <section className="py-20">
+      <section className="py-10">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="prose prose-lg dark:prose-invert mx-auto">
             <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-6">Our Story</h2>
             <p className="text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
-              TechRaq was founded in 2010 with a commitment to delivering innovative technology solutions. Over the years, 
+              TechRAQ was founded in 2010 with a commitment to delivering innovative technology solutions. Over the years, 
               we've evolved from a traditional software company to a pioneering force in artificial intelligence. 
               Our flagship product, Vyoma.ai, represents the culmination of over a decade of expertise and innovation.
             </p>
@@ -115,12 +135,12 @@ export default function AboutPage() {
             <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
               Learn more about our parent company and explore our comprehensive solutions at{" "}
               <a 
-                href="https://techraq.com" 
+                href="https://TechRAQ.com" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-primary hover:underline font-medium"
               >
-                techraq.com
+                TechRAQ.com
               </a>
             </p>
           </div>
@@ -160,7 +180,7 @@ export default function AboutPage() {
       </section>
 
       {/* Team Section */}
-      <section className="py-20">
+      {/* <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">
@@ -207,7 +227,7 @@ export default function AboutPage() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Timeline Section */}
       <section className="py-20 bg-white dark:bg-slate-800">
@@ -217,7 +237,7 @@ export default function AboutPage() {
               Our Journey
             </h2>
             <p className="text-lg text-slate-600 dark:text-slate-300">
-              Key milestones in the TechRaq story
+              Key milestones in the TechRAQ story
             </p>
           </div>
 
